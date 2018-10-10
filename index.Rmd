@@ -1,0 +1,52 @@
+---
+title: "Intermediate Stata (Statistical Modeling)"
+author: "Josh Errickson"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output:
+  bookdown::gitbook:
+    config:
+      sharing: null
+documentclass: book
+link-citations: yes
+github-repo: rstudio/bookdown-demo
+---
+
+# Preface
+
+## How to use this document
+
+These notes are published in [bookdown](https://bookdown.org/) format which enables easy creation of longform documents (using a mixture of
+[markdown](https://daringfireball.net/projects/markdown/), [R](https://www.r-project.org/), and for these notes specifically,
+[Stata](http://www.stata.com/)'s [dyndoc](http://www.stata.com/manuals/pdyndoc.pdf), which was added in Stata 15).
+
+The table of contents is found on the left hand side, with subsections expanding below the current section. At the top of the page are three icons,
+from left to right they 1) Hide/show the table of contents, 2) Search this document, and 3) Change the font the book is displayed in.
+
+All images should link to full-size versions to see detail if needed.
+
+## Contact information
+
+### CSCAR
+
+- Office Hours: Monday-Friday 9am to 5pm (Closed Tuesday 12-1pm)
+- Phone: 734.764.7828
+- Statistical Assistance: stats-consulting@umich.edu
+- Data Science Assistance: ds-consulting@umich.edu
+- High Performance Computing: hpc-consulting@umich.edu
+- http://cscar.research.umich.edu/
+
+### Author
+
+- Josh Errickson
+- 3550 Rackham Building
+- 915 E. Washington Street
+- Ann Arbor, MI 48109-1070
+- Email: jerrick@umich.edu
+
+## Acknowledgments
+
+These notes have evolved over the years thanks to many CSCAR statisticians, including Giselle Kolenic, Brady West, Heidi Reichert, and Lingling Zhang.
+
+This material was created for use in workshops and short courses presented by faculty and staff from the Consulting for Statistics, Computing \&
+Analytics Research (CSCAR) at the University of Michigan. No part of this material may be used for other purposes, copied, changed, or sold.
