@@ -211,72 +211,84 @@ conclusively say is that we do not have enough evidence to claim there is a diff
 
 ^#^^#^^#^ Including categorical predictors
 
-Let's say we want to add `rep78`, a categorical variable with 5 levels, to the model. Naively, we simply add it:
+Let's say we want to add `regionc` to the model. This is a variable that identifies which region (Northeast, Midwest, South, West) the respondent
+lives in. It's reasonable to test whether the energy expenditures differs by region, regardless of the size of the home. Let's naively add it to the
+model.
 
 ~~~~
 <<dd_do>>
-regress mpg gear_ratio headroom rep78
+regress dollarel totsqft_en female regionc
 <</dd_do>>
 ~~~~
 
-We only get a single coefficient. Stata is treating `rep78` as continuous. When including a categorical predictor, Stata will create dummy variables
-(variables which take on value 1 if the observation is in that category and 0 otherwise) and include all but one, which is the reference (or
-baseline). Since we only see a single coefficient here, we know Stata did it incorrectly.
+We only get a single coefficient. What is the interpretation of it? There is none. Stata is treating region as continuous. Regression models cannot
+use categorical predictors. Instead, the regression model requires a series a dummy variables (e.g. `northwest` - Is this respondent in the Northwest?
+`south` - Is this respondent in the South?) for which each respondent has a single positive (1) response and the remainder negative (0) responses.
 
-The issue is that Stata doesn't know we want to treat `rep78` as categorical. If we prefix the variable name with `i.`, Stata will know it is
-categorical.
+While we could create this ourselves^[You could use `tab regionc, generate(region)` to create it.], something we'd likely have to do in a software
+like SPSS, Stata (and most modern software) can handle this automatically. The issue is that Stata doesn't know we want to treat `regionc` as
+categorical. If we prefix the variable name with `i.`, Stata will know it is categorical.
+
+First, let's look at the regions and add appropriate lables from the codebook.
 
 ~~~~
 <<dd_do>>
-regress mpg gear_ratio headroom i.rep78
+tab regionc
+label define region 1 "Northeast" 2 "Midwest" 3 "South" 4 "West"
+label values regionc region
 <</dd_do>>
 ~~~~
-
-First, note that `headroom` no longer has a significant coefficient! This implies that `rep78` and `headroom` are correlated, and in the first model
-where we did not include `rep78`, all of `rep78`'s effect was coming through `headroom`. Once we control for `rep78`, headroom is no longer
-significant. We will discuss [multicollinearity later](#multicollinearity), as well as why this is
-why [model selection is bad](#model-selection-is-bad).
-
-Now we see 4 rows for `rep78`, each corresponding to a comparison between response 1 and the row. For example, the first row, 2, is saying that when
-`rep78` is 2 compared to when it is 1 (with `gear_ratio` and `headroom` held at some fixed level), the average predicted response drops by
-<<dd_display: %9.3f abs(_b[2.rep78])>> (though it is not statistical significant). The last row, 5, is saying that when `rep78` is 5 compare to when
-it is 1 (with `gear_ratio` and `headroom` held at some fixed level, the average predicted response increases by <<dd_display: %9.3f _b[5.rep78]>>
-(again, not statistically significant).
-
-To see the other comparisons (does 2 differ from 4?), we can use the `margins` command.
 
 ~~~~
 <<dd_do>>
-margins rep78
-margins rep78, pwcompare(pv)
+regress dollarel totsqft_en female i.regionc
 <</dd_do>>
 ~~~~
 
-The first `margins` call, without any options, displays the marginal means for each category - if every car had `rep78` at those levels, it's the
-average predicted mileage of all cars. The t-test here is useless - it's only testing that the average mileage of the cars in each group is not 0!
+This model is improved, considering the Adjusted ^$^R^2^$^ values. The coefficient (and significance) on square footage is not really changed, but
+notice the magnitude of the coefficient on `female` has changed drastically. This implies that gender and region were correlated, and when we did not
+control for region, gender was including it's effect. We will discuss [multicollinearity later](#multicollinearity), as well as why this is why [model
+selection is bad](#model-selection-is-bad).
 
-The second `margins` call adds the `pwcompare(pv)` option, which performs pairwise test between each pair of `rep78` levels. This is similar to a
-post-hoc test from ANOVA if you are familiar with it. The only statistical significance we find is 5 vs 3 and 5 vs 4, suggesting that 5 is dissimilar
-from 3 and 4. (Confusingly, 3 and 4 are not dissimilar from 1 or 2, but 5 is similar to 1 and 2! These sort of things can happen; its best to focus
-only on the comparisons that are of theoretical interest.)
+Now we see 3 rows for `regionc`, each corresponding to a comparison between region "Northeast" and the given row. When we include a categorical
+variable, one group is excluded as the baseline. By default, Stata removes the first group (here 1, Northeast). So we can see that the Midwest
+compared to the northeast has statistically significantly lower expenditure, with an average reduction of
+$<<dd_display: %9.2f abs(_b[2.regionc])>>. Those in the South have higher averae expenditure compared to Northeast, and those in the West have lower
+average expenditure.
+
+We do not see a comparison of, for example, South versus West. To see the other comparisons we can use the `margins` command.
+
+~~~~
+<<dd_do>>
+margins regionc
+margins regionc, pwcompare(pv)
+<</dd_do>>
+~~~~
+
+The first `margins` call, without any options, displays the marginal means for each category - if every respondent was from the given region, what is
+the average predicted expenditure. The t-test here is useless - it's only testing that the average expenditure is non-zero. We see that the lowest average expenditure is in the Midest, the highest in the South.
+
+The second `margins` call adds the `pwcompare(pv)` option, which performs pairwise test between each pair of regions. This is similar to a post-hoc
+test from ANOVA if you are familiar with it. All regions are statistically significant from each other.
 
 By default, using `i.` makes the first level (lowest numerical value) as the reference category. You can adjust this by using `ib#.` instead, such as:
 
 ~~~~
 <<dd_do>>
-regress mpg headroom gear_ratio ib3.rep78
+regress dollarel totsqft_en female ib2.regionc
 <</dd_do>>
 ~~~~
 
-**This does not fit a different model.** Both models (with `i.rep78` and `ib3.rep78`) are identical, we're just seeing slight variations. If the
-models do change (especially the model fit numbers in the top right), something has gone wrong.
+**This does not fit a different model.** Both models (with `i.regionc` and `ib2.regionc`) are identical, we're just seeing slight variations. If the
+models do change (especially the model fit numbers in the top right), something has gone wrong. So what's the point of this - well sometimes you only
+care about comparisons to a single baseline group. In that case, if you make that group the proper reference category, you don't need to use
+`margins`.
 
 ^#^^#^^#^ Interactions
 
 Each coefficient we've look at so far is only testing whether there is a relationship between the predictor and response when the other predictors are
 held constant. What if we think the relationship changes based on the value of other predictors? For example, we might be interested in whether the
-relationship between a car's headroom and its mileage depends on it's gear ratio. Perhaps we think that cars with higher gear ratio (a high gear ratio
-is indicative of a sportier car) won't be as affected by headroom as a stand-in for size, because sportier cars generally are better made.
+relationship between square footage and expenditure differs by region.
 
 Mathematically an interaction is nothing more than a literal multiplication. For example, if our model has only two predictors,
 
@@ -306,7 +318,7 @@ interaction and the main effects.
 
 ~~~~
 <<dd_do>>
-regress mpg c.headroom##c.gear_ratio i.rep78
+regress dollarel c.totsqft_en##i.regionc female
 <</dd_do>>
 ~~~~
 
@@ -315,22 +327,45 @@ need `c.` here! This can get pretty confusing, but it's never wrong to include `
 
 Once we include an interaction, the relationship between the variables included in the interaction and the response are not constant - the
 relationship depends on the value of the other interacted variables. This can be hard to visualize with the basic regression output, so we'll look at
-`margins` again instead. We'll want to look at the relationship between `mpg` and `headroom` at a few different values of `gear_ratio` to get a sense
-of the pattern. `gear_ratio` ranges from 2.19 to 3.89 (this can be obtained with `summarize` or `codebook`, just don't forget to [save the
-results](summarizing-data.html#storing-and-restoring-estimation-commands) or re-run the `regress` command to gain access to the [postestimation
-commands](summarizing-data.html#postestimation-commands) again), so let's look at the relationship at those extremes and at 3:
+`margins` again instead. We'll want to look at the relationship between square footage and expenditure in each region.
 
 ~~~~
 <<dd_do>>
-margins, dydx(headroom) at(gear_ratio = (2.19 3 3.89))
+margins region, dydx(totsqft_en)
 <</dd_do>>
 ~~~~
 
-While none of the p-values are significant, let's pretend they were for the sake of discussion. Notice the pattern in the "dy/dx" column. With a low
-gear ratio, the relationship between headroom and mpg is negative - a larger headroom car is predicted to have lower mileage. At the other end, with a
-high gear ratio, the relationship is much closer to 0, and perhaps even slightly positive.
+The `dydx()` option specifies that instead of marginal means (as we had above), we want to look at marginal slopes - that is, the slope between square
+footage and expenditure in each region. Recall that without the interaction the coefficient associated with square footage was approximately .25. Here
+we see that in the South and West that relationship is actually steeper, while in the Northeast and Midwest it's shallower. Here the t-tests are
+more interesting, testing whether the slop in each region is significantly different than zero.
 
-Follow this with a call to `marginsplot` for a great visualization:
+Note that the slope in Northeast in the margins call is identical to the main effect of square footage. The `margins` command is not telling us
+anything we could not have obtained or calculated from the regression output - it's just doing so with minimal effort and maximal clarity.
+
+Let's test whether the slopes differ between regions.
+
+~~~~
+<<dd_do>>
+margins region, dydx(totsqft_en) pwcompare(pv)
+<</dd_do>>
+~~~~
+
+It can sometimes be tricky to look at these tests and determine what it is telling us, but what this is basically saying is that Northeast and Midwest
+have the same slope, and South and West have the same slope. Then Northeast/Midwest is different than South/West. There's a bit of confusion because
+West and Northeast are not statistically distinguishable (although .6 is extremely close to significance). This sort of thing happens often with
+multiple pairwise comparison, it's best to try and focus on the overarching result instead of getting bogged down in details.
+
+We can call `margins` with slightly different options to be able to produce an interaction plot. Rather than using the `dydx` option, we'll use the
+`at` option to estimate marginal means at specific values of square footage.
+
+~~~~
+<<dd_do>>
+margins region, at(totsqft_en = (1000 8000))
+<</dd_do>>
+~~~~
+
+Follow this with a call to `marginsplot`:
 
 ~~~~
 <<dd_do>>
@@ -340,36 +375,19 @@ marginsplot
 
 <<dd_graph: replace>>
 
-With low gear_ratio, there is a negative relationship between headroom and mileage - adding headroom to a low gear ratio car is predicted to decrease
-mileage, on average. However, the effect decreases as gear ratio increases, and at high levels of gear ratio, there is no longer any relationship. You
-can detect this by looking at the means (the points) and the confidence bands; here there is no relationship at all, but there is some suggestion that
-the relationship we describe may be occurring.
-
-Note that the choice of looking at the effect of headroom for different levels of gear ratio was arbitrary; we could have easily looked at the effect
-of gear ratio for different levels of headroom (just swap what's the in the `dydx( )` and `at( )` options). The choice in a real modeling situation
-should depend on which is more interesting.
+There isn't too much interesting here that we haven't identified before. Often there is, and this plot will be useful. You can use the `pwcompare(pv)`
+option alongside the `at()` option to test for differences in region at specific values of square footage.
 
 ^#^^#^^#^^#^ Centering
 
-Some sources suggest centering continuous predictors before including them in an interaction. This can help slightly with interpretation (the main
-effects are the relationship when the other variable involved in the interaction are at their mean, rather than at zero) but doesn't actually affect
-model fit.
+Some sources suggest centering continuous predictors before including them in an interaction. This will change the coefficients in the regression
+output, but will not fit a different model. What may be usefl is the main effects of terms involved in the interaction are now when the other variable
+is at it's mean, rather than at 0. For example, in the model above with the interaction of square footage and region, the coefficients on region are
+the differences in region when square footage is 0 - not interesting. If we centered square footage, then the coefficients on region would be testing
+for differences when square footage is at it's mean.
 
-To center, use the following:
-
-~~~~
-<<dd_do>>
-summ gear_ratio
-gen gear_ratioc = gear_ratio - `r(mean)'
-summ headroom
-gen headroomc = headroom - `r(mean)'
-summ gear_ratioc headroomc
-regress mpg c.headroomc##c.gear_ratioc i.rep78
-<</dd_do>>
-~~~~
-
-If you compare fit characteristics and the interaction coefficient (and other coefficients), you'll notice nothing has changed save the coefficient
-for `headroomc` and `gear_ratioc`. If we were to re-run the `margins` commands from before, we'd see the same results.
+However, once again, **this is not fitting a different model**. The results will be identical. I'd always recommend looking at the margins and
+interaction plot, even if you do center.
 
 ^#^^#^^#^ Robust standard errors
 
@@ -381,16 +399,16 @@ standard errors, also known as Sandwich estimators or Huber-White estimators, wi
 
 ~~~~
 <<dd_do>>
-regress mpg c.headroom##c.gear_ratio i.rep78, vce(robust)
+regress dollarel c.totsqft_en##i.regionc female, vce(robust)
 <</dd_do>>
 ~~~~
 
-Notice that compared to the [previous model](#interactions), the Coef estimates but the standard errors (and corresponding t-statistic, p-value and
-confidence interval) are slightly different.
+Notice that compared to the [previous model](#interactions), the Coef estimates are identical but the standard errors (and corresponding t-statistic,
+p-value and confidence interval) are slightly different.
 
-Typically, the robust standard errors should be slightly larger than the non-robust standard errors, but not always (as in this case). Generally, the
-only situation where the robust standard errors will decrease is when the error variance is highest for observations near the average value of the
-predictors. This does not often happen (generally the higher residuals occur in observations that could be considered outliers).
+Typically, the robust standard errors will be larger than the non-robust standard errors, but not always. Generally, the only situation where the
+robust standard errors will decrease is when the error variance is highest for observations near the average value of the predictors. This does not
+often happen (generally the higher residuals occur in observations that could be considered outliers).
 
 There has been some argument that robust standard errors should always be used, because if the model is correctly specified, the robust standard
 errors and regular standard errors should be almost identical, so there is no harm in using them.
