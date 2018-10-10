@@ -1,18 +1,12 @@
 ^#^ Regression
 
-One notable exclusion from the [previous chapter](univariate-and-some-bivariate-analysis.html) was comparing the mean of a continuous variables across
-three or more groups. Two-sample t-tests compare the means across two groups, and ^$^\chi^2^$^ tests can compare two categorical variables with
-arbitrary number of levels, but the traditional test for comparing means across multiple groups is ANOVA (ANalysis Of VAriance). While historically
-this has been a very useful procedure due to the ease with which it can be performed manually, its modern use has been supplanted by regression, which
-is mathematically equivalent and easier to extend (the downside of regression is that it is more difficult to calculate, but given that we are no
-longer doing statistical analyses by hand...). This relationship extends to other variations of ANOVA such as ANCOVA or MANOVA.
+Regression is a term for a wide range of very common statistical modeling designed to estimate the relationship between a set of variables. The nature
+of the variables and the hypothesized relationship between the variables affect which choice of regression is to be used.
 
-If you still want to fit an ANOVA, it can be done with the `oneway` command. Otherwise we turn now to regression.
+In this set of notes we will talk about generalized linear models, one of the two most commonly used forms of regression (the other being mixed
+effects regression, which is the subject of [a follow-up set of notes]() FIX ME).
 
-Regression is a set of techniques where we attempt to fit a model to a data set estimating the relationships between a set of predictor variables
-(either continuous or categorical in nature) and a response variable of interest. There are many versions of regression which are appropriate for
-different types of response variables, or address different concerns when fitting the model. In this chapter and [the next](mixed-models.html), we
-will discuss a few variations.
+We will start with the most basic form of regression, linear regression, and build up from there.
 
 ^#^^#^ Terminology
 
@@ -24,11 +18,28 @@ The variable we are predicting can be called the "outcome", the "response" or th
 
 The variables upon which we are predicting can be called "predictors", "covariates", or "independent variables".
 
+The model we're going to start discussing is called "linear regression". You may also have this called "least squares regression" or "ordinary least
+squares (OLS)". A lot of the time, if you see a reference to "regression" without specifying the type, they are referring to linear regression.
+
 ^#^^#^ Linear Regression
 
-Linear regression (also known as Ordinary Least Squares (OLS) regression) is the most basic form of regression, where the response variable is
-continuous. Technically the response variable can also be binary or categorical but there are better regression models for those types of
-outcomes. Linear regression fits this model:
+Linear regression is the most basic form of regression. This is suitable for situations where you have some number of predictor variables and the goal
+is to establish a linear equation which predicts a continuous outcome. Technically the outcome need not be continuous, but there are often better
+forms of regression to use for non-continuous outcomes. The term "linear equation" refers back to high school geometry and the equation for a line,
+
+^$$^
+    y = mx + b
+^$$^
+
+In that framing, the value of y can be obtained for a given value of x, based upon the slope (m) and intercept (b). You can easily extend this to higher dimensions,
+
+^$$^
+    y = mx + nz + b
+^$$^
+
+Now the value of y also depends on z and it's slope (n).
+
+Linear regression fits a model based on this equation of a line:
 
 ^$$^
   Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \cdots + \beta_pX_p + \epsilon
@@ -36,17 +47,31 @@ outcomes. Linear regression fits this model:
 
 - ^$^Y^$^ represents the outcome variable.
 - ^$^X_1, X_2, \cdots, X_p^$^ represent the predictors, of which there are ^$^p^$^ total.
-- ^$^\beta_0^$^ represents the intercept. If you have a subject for which every predictor is equal to zero, ^$^\beta_0^$^ represents their predicted
-  outcome.
-- The other ^$^\beta^$^'s are called the coefficients, and represent the relationship between each predictor and the response. We will cover their
-  interpretation in detail later.
+- ^$^\beta_0^$^ represents the intercept. ^$^\beta_0^$^ represents the predicted average outcome when all ^$^X_i^$^ are 0. Often this will be
+  nonsensical and ignored (e.g., if ^$^X_1^$^ is age, it usually makes no sense to estimate the outcome when age is 0).
+- The other ^$^\beta^$^'s are called the coefficients, and represent the relationship (slope) between each predictor and the response. We will cover
+  their interpretation in detail later.
 - ^$^\epsilon^$^ represents the error. Regression is a game of averages, but for any individual observation, the model will contain some error.
 
-Linear regression models can be used to predict expected values on the response variable given values on the predictors, and ^$^\epsilon^$^
-represents the difference between a prediction based on the model and what the actual value of the response variable is. Stata can be used to estimate
-the regression coefficients in a model like the one above, and perform statistical tests of the null hypothesis that the coefficients are equal to
-zero (and thus that predictor variables are not important in explaining the response). Note that the response ^$^Y^$^ is modeled as a linear
-combination of the predictors and their coefficients.
+For example, the relationship between the weight of a car (in lbs) and the length of a car (in inches) is approximately^[This is based a database of
+cars from 1978, and with some pretty harsh rounding of the coefficients, for demonstration purposes.]:
+
+^$$^
+    \textrm{weight} = -3000 + 33*\textrm{length}
+^$$^
+
+The intercept is meaningless - how many 0 length cars do you know? If we plug in a reasonable value for length, say 200 inches, we can solve for
+weight:
+
+^$$^
+    \textrm{weight} = -3000 + 33*200 = 3600
+^$$^
+
+This is the predicted weight; for a given car of length 200, it won't be exactly 3600 lbs, but that difference is error (^$^\epsilon^$^).
+
+Stata can be used to estimate the regression coefficients in a model like the one above, and perform statistical tests of the null hypothesis that the
+coefficients are equal to zero (and thus that predictor variables are not important in explaining the response). Note that the response ^$^Y^$^ is
+modeled as a linear combination of the predictors and their coefficients.
 
 Some introductory statistical classes distinguish between simple regression (with only a single predictor) and multiple regression (with more than one
 predictor). While this is useful for developing the theory of regression, simple regression is not commonly used for real analysis, as it ignores one
@@ -56,13 +81,70 @@ We will now fit a model, discussing assumptions afterwards, because almost all a
 
 ^#^^#^^#^ Fitting the model
 
-Stata's `regress` command fit the linear regression model. It is followed by the outcome variable followed by all predictors. For this example, let's
-use the auto data and fit a relatively simple model, predicting `mpg` based on `gear_ratio` and `headroom`.
+For demonstration purposes, we'll use the [2015 Residentical Energy Consumption Survey
+(RECS)](https://www.eia.gov/consumption/residential/data/2015/index.php?view=microdata). This is a public data-set made available by the governmental
+Energy Information Administation containing household level information about "energy characteristics on the housing unit, usage patterns, and
+household demographics"^[https://www.eia.gov/consumption/residential/about.php]
 
 ~~~~
 <<dd_do>>
-sysuse auto, clear
-regress mpg gear_ratio headroom
+import delimited https://www.eia.gov/consumption/residential/data/2015/csv/recs2015_public_v3.csv
+<</dd_do>>
+~~~~
+
+Stata's `regress` command fit the linear regression model. The general syntax is
+
+```
+regress <outcome> <predictors>
+```
+
+Let's fit a model predicting dollar expenditure on electricity (`dollarel`) based upon the square footage of the house (`totsqft_en`) and the gender
+of the respondent (`hhsex`). Before we fit the model, we want to briefly explore each variable involved.
+
+~~~~
+<<dd_do>>
+summarize dollarel
+histogram dollarel
+<</dd_do>>
+~~~~
+
+<<dd_graph: replace>>
+
+We see here that expenditure on electricty ranges from under $ 20 to over $ 8000, though the vast majority seem to be between a few hundred dollars
+and $ 2000-3000. We will discuss a bit [later]() FIX ME how to handle right-skewed variables.
+
+~~~~
+<<dd_do>>
+summarize totsqft_en
+histogram totsqft_en
+<</dd_do>>
+~~~~
+
+<<dd_graph: replace>>
+
+Looks very similar to `dollarel`.
+
+~~~~
+<<dd_do>>
+tab hhsex
+<</dd_do>>
+~~~~
+
+For looking at the codebook online (Excel file [here](https://www.eia.gov/consumption/residential/data/2015/xls/codebook2015_public_v3.xlsx)), we see
+that 1 is female and 2 is male. Let's generate a new variable to make this distinction more clear
+
+~~~~
+<<dd_do>>
+generate female = hhsex == 1
+tab female
+<</dd_do>>
+~~~~
+
+Now `female` will be a 1 if the respondent is female and 0 otherwise.
+
+~~~~
+<<dd_do>>
+regress dollarel totsqft_en female
 <</dd_do>>
 ~~~~
 
@@ -74,41 +156,46 @@ here, as there are further measures of model fit in the regression frameworks.
 
 Next, the top right part has a series of measures.
 
-- Regression performs complete case analysis - any observations missing any variable involved in this model is ignored in the
-  model. (See [multiple imputation](multiple-imputation.html) for details on getting around this.) Check "Number of obs" to ensure the number of
-  observations is what you expect. Here, the data has 74 rows, so the regression model is using all the data (there is no missingness in `mpg`,
-  `weight` or `displacement`).
-- The F-test which follows ("F(2, 71)"^[The 2 and 71 are degrees of freedom. They don't typically add any interpretation.] and "Prob > F") is testing
-  the null hypothesis that all coefficients are 0. In other words, if this test fails to reject, the conclusion is the model captures no
-  relationships. In this case, do not continue interpreting the results; either your conclusion is that there is no relationship, or you need to
-  return to the model design phase. If this test does reject, you can continue interpreting.
+- Regression performs complete case analysis - any observations missing any variable involved in this model is ignored in the model. (See [multiple
+  imputation](multiple-imputation.html) for details on getting around this.) Check "Number of obs" to ensure the number of observations is what you
+  expect. Here, the data has 5,686 rows, so the regression model is using all the data (there is no missingness in the variables involved in the
+  model^[There likely was, but the RECS does data imputation for you.].
+- The F-test which follows ("F(<<dd_display: %9.0g e(df_m)>>, <<dd_display: %9.0g e(df_r)>>)"^[The <<dd_display: %9.0g e(df_m)>> and
+  <<dd_display: %9.0g e(df_r)>> are degrees of freedom. They don't typically add any interpretation.] and "Prob > F") is testing the null hypothesis
+  that all coefficients are 0. In other words, if this test fails to reject, the conclusion is the model captures no relationships. In this case, do
+  not continue interpreting the results; your conclusion is that there is no linear relationship. If this test does reject, you can continue
+  interpreting.
 - The ^$^R^2^$^ ("R-squared") is a measure of model fit. It ranges from 0 to 1 and is a percentage, explaining what percent in the variation in the
   response is explained by the linear relationship with the predictors. What's considered a "large" ^$^R^2^$^ depends greatly on your field and the
   situation, in very general terms, .6 is good and above .8 is great. However, if you know that there are a lot of unmeasured variables, a much
-  smaller ^$^R^2^$^ can be considered good as well.
+  smaller ^$^R^2^$^ can be considered good as well. The ^$^R^2^$^ of <<dd_display: %9.2f e(r2)>> is low, though it's not so close to 0 as to be
+  meaningless.
 - Mathematically, adding a new predictor to the model will increase the ^$^R^2^$^, regardless of how useless the variable is.^[The only exception is
-  if the predictor being added is either constant or identical to another variable.] This makes ^$^R^2^$^ poor for model comparison, as it would
-  always select the model with the most predictors. Instead, the adjusted ^$^R^2^$^ ("Adj R-Squared") accounts for this; it penalizes the ^$^R^2^$^ by
-  the number of predictors in the model. Use the ^$^R^2^$^ to measure model fit, use the adjusted ^$^R^2^$^ for model comparison.
+  if the predictor being added is either constant or identical to another variable, in which case the regression model won't estimate a coefficient
+  for it anyways.] This makes ^$^R^2^$^ poor for model comparison, as it would always select the model with the most predictors. Instead, the adjusted
+  ^$^R^2^$^ ("Adj R-Squared") accounts for this; it penalizes the ^$^R^2^$^ by the number of predictors in the model. Use the ^$^R^2^$^ to measure
+  model fit, use the adjusted ^$^R^2^$^ for model comparison.
 - The root mean squared error ("Root MSE", as known as RMSE) is a measure of the average difference between the observed outcome and the predicted
   outcome. It can be used as another measure of model fit, as it is on the scale of the outcome variable. So for this example, the RMSE is
-  <<dd_display: %9.4f e(rmse)>> so the average error in the model is about <<dd_display: %9.1f e(rmse)>> mpg.
+  <<dd_display: %9.2f e(rmse)>> so the average error is about $<<dd_display: %9.2f e(rmse)>>. Recall that we saw before that expenditure ranged to
+  $ 8000, so an error of $<<dd_display: %9.0f e(rmse)>> is low, but not insignificant.
 
 Finally, we get to the coefficient table. Each row represents a single predictor. The "\_cons" row is the intercept; it's Coef. of
-<<dd_display: %9.4f _b[_cons]>> represents the average response *when all other predictors are 0*. This is usually not interesting; how many cars
-weighing 0 lbs do you know of? So we'll ignore this and instead go over the other rows.
+<<dd_display: %9.2f _b[_cons]>> represents the average response *when all other predictors are 0*. Given that square-footage cannot be 0, this is
+meaningless and can be ignored. (Note that we cannot exclude the constant, we are simply ignoring it.)
 
 - "Coef.": These are the ^$^\beta^$^ from the above model. We interpret each as "For a 1 increase in the value of the covariate with all other
-  predictors held constant, we would predict this change in the response, on average." For example, for every additional inch^[This is why it's
-  important to familiarize yourself with the units in your data!] of headroom in a car (while its gear ratio is constant), it is predicted to have an
-  average of <<dd_display: %9.4f abs(_b[headroom])>> lower mpg.
+  predictors held constant, we would predict this change in the response, on average." For example, for every additional square foot in a house (while
+  the gender of the respondent is constant), the respondent is predicted to have an average of $<<dd_display:%9.2f abs(_b[totsqft_en])>> lower
+  expenditure. It may make more sense to discuss this in terms of whole dollar changes; for every additional four square feet, we'd expect a $ 1
+  increase in expenditure.
 - "Std. Err.": This represents the error attached to the coefficient. This is rarely interpreted; but if it gets extremely large or extremely small
   (and the Coef. doesn't likewise go to extremes), its an indication there may be something wrong.
 - "t": This is the standardized coefficient, calculated as Coef./Std. Err. We can't directly compare the Coef.'s because of the different scales, but
-  we can examine the standardized coefficients to get a sense of which predictor has a larger impact. In this model, we see that the impact of weight
-  is much more than the impact of displacement.
-- "P>|t|": The p-value testing whether the coefficient is significantly different than 0. In this model, we see that both `gear_ratio` and `headroom`
-  have significant p-values.
+  we can examine the standardized coefficients to get a sense of which predictor has a larger impact. In this model, we see that the impact of square
+  footage is much more than the impact of gender.
+- "P>|t|": The p-value testing whether the coefficient is significantly different than 0. In this model, we see that square footage is significant,
+  while there appears to be no gender difference.
 - "[95% Conf. interval]": A range of possible values.
 
 Whenever we look at any model, a distinction needs to be drawn between statistical significance and practical significance. While these two
@@ -116,6 +203,11 @@ interpretations of significance often align, they are not guaranteed to. We ofte
 is no practical significance (aka clinical significance, a difference that isn't scientifically interesting). This is mostly a function of sample
 size; with a large sample even very small effects can have small p-values. Alternatively, a large practical significance with a low statistical
 significance can occur with very noisy data or a small sample size, which might indicate further study with a larger sample is needed.
+
+In this example, the gender difference may qualify - the model is estimating that women respondents pay almost $ 10 more than men on average, however,
+this coefficient is not statistically distinguishable from 0. The confidence interval, ranging from -30 to 50, it extremely wide. It's possible that
+there is a different between the genders of the respondent, but the estimate is small and noisy - and our sample size is not sufficient. All we can
+conclusively say is that we do not have enough evidence to claim there is a difference in gender.
 
 ^#^^#^^#^ Including categorical predictors
 

@@ -1,5 +1,5 @@
 ---
-title: "Intermediate Stata (Statistical Modeling)"
+title: "Regression Modeling in Stata"
 author: "Josh Errickson"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
@@ -44,9 +44,7 @@ All images should link to full-size versions to see detail if needed.
 - Ann Arbor, MI 48109-1070
 - Email: jerrick@umich.edu
 
-## Acknowledgments
-
-These notes have evolved over the years thanks to many CSCAR statisticians, including Giselle Kolenic, Brady West, Heidi Reichert, and Lingling Zhang.
+## Usage
 
 This material was created for use in workshops and short courses presented by faculty and staff from the Consulting for Statistics, Computing \&
 Analytics Research (CSCAR) at the University of Michigan. No part of this material may be used for other purposes, copied, changed, or sold.
