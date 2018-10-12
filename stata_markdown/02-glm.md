@@ -1,3 +1,5 @@
+^#^ GLM
+
 ^#^^#^ Logistic Regression
 
 Let's violate one of the [assumptions](#relationship-is-linear-and-additive). Instead of the relationship being linear, we can generalize to allow the
