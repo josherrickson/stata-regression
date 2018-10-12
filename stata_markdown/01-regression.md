@@ -1,4 +1,4 @@
-^#^ Regression
+^#^ Ordinal Least Squares
 
 Regression is a term for a wide range of very common statistical modeling designed to estimate the relationship between a set of variables. The nature
 of the variables and the hypothesized relationship between the variables affect which choice of regression is to be used.
@@ -21,11 +21,12 @@ The variables upon which we are predicting can be called "predictors", "covariat
 The model we're going to start discussing is called "linear regression". You may also have this called "least squares regression" or "ordinary least
 squares (OLS)". A lot of the time, if you see a reference to "regression" without specifying the type, they are referring to linear regression.
 
-^#^^#^ Linear Regression
+^#^^#^ Theory
 
-Linear regression is the most basic form of regression. This is suitable for situations where you have some number of predictor variables and the goal
-is to establish a linear equation which predicts a continuous outcome. Technically the outcome need not be continuous, but there are often better
-forms of regression to use for non-continuous outcomes. The term "linear equation" refers back to high school geometry and the equation for a line,
+Ordinay Least Squares regression is the most basic form of regression. This is suitable for situations where you have some number of predictor
+variables and the goal is to establish a linear equation which predicts a continuous outcome. Technically the outcome need not be continuous, but
+there are often better forms of regression to use for non-continuous outcomes. The term "linear equation" refers back to high school geometry and the
+equation for a line,
 
 ^$$^
     y = mx + b
@@ -79,7 +80,7 @@ of the main benefits of regression, controlling for other predictors (to be disc
 
 We will now fit a model, discussing assumptions afterwards, because almost all assumption checks can only occur once the model is fit!
 
-^#^^#^^#^ Fitting the model
+^#^^#^ Fitting the model
 
 For demonstration purposes, we'll use the [2015 Residentical Energy Consumption Survey
 (RECS)](https://www.eia.gov/consumption/residential/data/2015/index.php?view=microdata). This is a public data-set made available by the governmental
@@ -209,7 +210,7 @@ this coefficient is not statistically distinguishable from 0. The confidence int
 there is a different between the genders of the respondent, but the estimate is small and noisy - and our sample size is not sufficient. All we can
 conclusively say is that we do not have enough evidence to claim there is a difference in gender.
 
-^#^^#^^#^ Including categorical predictors
+^#^^#^ Including categorical predictors
 
 Let's say we want to add `regionc` to the model. This is a variable that identifies which region (Northeast, Midwest, South, West) the respondent
 lives in. It's reasonable to test whether the energy expenditures differs by region, regardless of the size of the home. Let's naively add it to the
@@ -284,7 +285,7 @@ models do change (especially the model fit numbers in the top right), something 
 care about comparisons to a single baseline group. In that case, if you make that group the proper reference category, you don't need to use
 `margins`.
 
-^#^^#^^#^ Interactions
+^#^^#^ Interactions
 
 Each coefficient we've look at so far is only testing whether there is a relationship between the predictor and response when the other predictors are
 held constant. What if we think the relationship changes based on the value of other predictors? For example, we might be interested in whether the
@@ -378,7 +379,7 @@ marginsplot
 There isn't too much interesting here that we haven't identified before. Often there is, and this plot will be useful. You can use the `pwcompare(pv)`
 option alongside the `at()` option to test for differences in region at specific values of square footage.
 
-^#^^#^^#^^#^ Centering
+^#^^#^^#^ Centering
 
 Some sources suggest centering continuous predictors before including them in an interaction. This will change the coefficients in the regression
 output, but will not fit a different model. What may be usefl is the main effects of terms involved in the interaction are now when the other variable
@@ -389,7 +390,7 @@ for differences when square footage is at it's mean.
 However, once again, **this is not fitting a different model**. The results will be identical. I'd always recommend looking at the margins and
 interaction plot, even if you do center.
 
-^#^^#^^#^ Robust standard errors
+^#^^#^ Robust standard errors
 
 The standard error associated with each coefficient are determined with the assumption that the model is "true" and that, were we given an infinite
 sample size, the estimates ^$^\hat{\beta}^$^ would converge to the true ^$^\beta^$^. In many situations, this is clearly untrue.
@@ -413,11 +414,11 @@ often happen (generally the higher residuals occur in observations that could be
 There has been some argument that robust standard errors should always be used, because if the model is correctly specified, the robust standard
 errors and regular standard errors should be almost identical, so there is no harm in using them.
 
-^#^^#^^#^ Assumptions
+^#^^#^ Assumptions
 
 There are three main assumptions when running a linear regression. Some we can test, some we cannot (and need to rely on our knowledge of the data).
 
-^#^^#^^#^^#^ Relationship is linear and additive
+^#^^#^^#^ Relationship is linear and additive
 
 Recall the linear regression model:
 
@@ -448,7 +449,7 @@ a pattern (the third). (We will discuss the second plot [below](#errors-are-homo
 
 If this assumption is violated, you will need to reconsider the structure in your model, perhaps by adding a squared term (e.g. `reg y c.x c.x#c.x`).
 
-^#^^#^^#^^#^^#^ Obtaining predicted values and residuals
+^#^^#^^#^^#^ Obtaining predicted values and residuals
 
 In the [`rvfplot`](#relationship-is-linear-and-additive), we plotted residuals versus predicted values - neither of which we have in the data. If
 there is some analysis beyond what `rvfplot` produces that you're interested in, the `predict` command can obtain these. The general syntax for
@@ -475,7 +476,7 @@ twoway scatter resids linearpredictor
 
 <<dd_graph: replace>>
 
-^#^^#^^#^^#^ Errors are homogeneous
+^#^^#^^#^ Errors are homogeneous
 
 "Homogeneity" is a fancy term for "uniform in distribution", whereas "heterogeneity" represents "not uniform in distribution". If we were to take a
 truly random sample of all individuals in Michigan, the distribution of their heights would be homogeneous - it is reasonable to assume there is only
@@ -492,14 +493,14 @@ middle plot. As the fitted values increase, the error spreads out.
 If this assumption is violated, you may consider restructuring your model as above, or transforming either your response or predictors using log
 transforms.
 
-^#^^#^^#^^#^ Independence
+^#^^#^^#^ Independence
 
 This last assumption is that each row of your data is independent. If you have repeated measures, this is violated. If you have subjects drawn from
 groups (i.e. students in classrooms), this is violated. There is no way to test for this, it requires knowing the data set.
 
 If this assumption is violated, consider fitting a [mixed model](mixed-models.html) instead.
 
-^#^^#^^#^ Variable Transformations
+^#^^#^ Variable Transformations
 
 Sometimes if one of the above assumptions is violated, it can be addressed by a simple variable transformation. The most common is taking the log of a
 right-skewed variable.
@@ -534,9 +535,9 @@ The string in quotes ("Exp(Coef.)") is irrelevant and only for display purposes,
 coefficient as the percent change in the outcome for a 1-unit increase in the predictor. For example, a coefficient of 1.15 would indicate that for a
 1-unit increase in x, you predict an average increaes of 15% in y. A coefficient of .89 would predict an average decrease of 11% in y.
 
-^#^^#^^#^ Miscellaneous concerns
+^#^^#^ Miscellaneous concerns
 
-^#^^#^^#^^#^ Multicollinearity
+^#^^#^^#^ Multicollinearity
 
 Multicollinearity is an issue when 2 or more predictors are correlated. If only two are correlated, looking at their correlation (with `pwcorr` or
 `correlate`) may provide some indication, but you can have many-way multicollinearity where each pairwise correlation is low. You can use the variance
@@ -574,13 +575,13 @@ but let's assume without loss of generality that ^$^a=1^$^ and ^$^b=0^$^.] Now, 
 
 This is an extreme example, but in practice we can be close to this situation.
 
-^#^^#^^#^^#^ Overfitting
+^#^^#^^#^ Overfitting
 
 Overfitting occurs when a model includes so many predictors that you can no longer generalize to the population. The rule of thumb is that you should
 have no more than one predictor for every 10-20 observations. The smaller your sample size, the more conservative you should be. For example, a sample
 size of 100 should use no more than 10-20 predictors. Recall that a categorical predictor with ^$^k^$^ different levels adds ^$^k-1^$^ predictors!
 
-^#^^#^^#^^#^ Model Selection is bad
+^#^^#^^#^ Model Selection is bad
 
 There is a literature on the idea of model selection, that is, an automated (or sometimes manual) way of testing many versions of a model with a
 different subset of the predictors in an attempt to find the model that fits best. These are sometimes called "stepwise" procedures.
