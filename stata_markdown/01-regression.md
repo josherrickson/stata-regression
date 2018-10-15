@@ -1,4 +1,4 @@
-^#^ Ordinal Least Squares
+^#^ Ordinary Least Squares
 
 Regression is a term for a wide range of very common statistical modeling designed to estimate the relationship between a set of variables. The nature
 of the variables and the hypothesized relationship between the variables affect which choice of regression is to be used.
