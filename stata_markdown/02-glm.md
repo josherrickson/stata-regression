@@ -115,8 +115,8 @@ the predictors and the outcome, we cannot simply multiply the odds ratios. Inste
 
 ~~~~
 <<dd_do>>
-gen dollarel1000 = dollarel/1000
-gen totsqft1000 = totsqft_en/1000
+generate dollarel1000 = dollarel/1000
+generate totsqft1000 = totsqft_en/1000
 logit cellar dollarel1000 totsqft1000 i.regionc female, or
 <</dd_do>>
 ~~~~
@@ -255,7 +255,7 @@ positive outcome! Instead you should strive to have at least 10 or ideally over 
 
 If the percent of positive outcomes is extreme (e.g. 99% or 1%), logistic regression may fail to converge. Sometimes [Poisson
 regression](#poisson-regresion) which we'll talk about next can be used in this situation. The estimated coefficients will be slightly biased, but
-convergence may work.
+convergence may easier to achieve.
 
 ^#^^#^ Poisson regression
 
@@ -280,17 +280,87 @@ poisson totrooms dollarel1000 totsqft1000 i.cellar i.regionc female
 <</dd_do>>
 ~~~~
 
+We see the same sort of header information, including a Chi2 test for model significance and another pseudo ^$^R^2^$^.
+
+The coefficients are again not interpretable other than sign and magnitude, but we can report incidence-rate ratios (IRR) instead. The `irr` option
+produces these, which are just the exponetiated coefficients.
+
+~~~~
+<<dd_do>>
+poisson, irr
+<</dd_do>>
+~~~~
+
+IRR's are slightly easier to interpret than OR's. Each represents a average percent change in the count of the outcome predicted when there is a 1
+increase in the predictor variable.
+
+For example, the IRR for square footage is <<dd_display: %9.3f exp(_b[totsqft1000])>> which translates to a <<dd_display: %9.1f 100*(exp(_b[totsqft1000])-1)>>%
+predicted average increase in the number of rooms in a house which increases in sample size by 1,000 square feet.
+
+^#^^#^^#^ Interactions, categorical variables, `margins`, `predict`
+
+Interactions and categorical variables work the same. `margins` estimates the marginal means, which are the expected number of counts. `predict` by
+default predicts the number of events.
+
+^#^^#^^#^ Assumptions
+
+Poisson regression has the same independence assumption. It also has a very strong assumption which is specific to the Poisson distribution - namely
+that the mean and variance of a Poisson random variable are equal. In other words, as the mean of a Poisson variable increases, it becomes more spread
+out in a linear fashion.
+
+We can examine whether this may be true for a given variable.
+
+~~~~
+<<dd_do>>
+summarize totrooms
+<</dd_do>>
+~~~~
+
+Here the mean, <<dd_display: %9.2f r(mean)>> is very close to the variance, <<dd_display: %9.2f r(sd)>>^$^^2^$^ = <<dd_display: %9.2f r(Var)>>. This
+is not always the case for count data. If this is not true, a Negative Binomial model may be more appropriate. It's extremely similar to Poisson,
+except it allows the mean and variance to be decoupled by means of ^$^\alpha^$^, called the overdispersion factor.
+
+We can fit it with the `nbreg` command.
+
+~~~~
+<<dd_do>>
+nbreg totrooms dollarel1000 totsqft1000 i.cellar i.regionc female
+<</dd_do>>
+~~~~
+
+The row for `alpha` is the estimate of the overdispersion factor. If this value is close to 0, the Poisson model is appropriate. That's what is
+occcurring here - in fact it's so close to 0 that Stata refuses to even compute a standard error for it. The likelihood ratio test below it is
+formally testing whether the Poisson model is appropriate; here the p-value of 1.0 let's us stick with Poisson. If this rejected, the negative
+binomial model is more appropriate. The negative binomial model is interpreted in the same fashion as Poisson.
+
+^#^^#^^#^ Exposure
+
+Sometimes the count is limited by the exposure - for example, if you are counting the number of students in a class who fail an exam, this number will
+likely be higher for classes with more students. We can adjust for this in the Poisson model by specifying the `exposure(___)` option.
+
+In the energy data, let's say instead of the total number of rooms, we want to predict the number of bedrooms. Obviously the total number of rooms in
+the house will greatly affect the number of bedrooms.
+
+~~~~
+<<dd_do>>
+histogram bedrooms
+<</dd_do>>
+~~~~
+
+<<dd_graph: replace>>
+
+~~~~
+<<dd_do>>
+poisson bedrooms dollarel1000 totsqft1000 i.cellar i.regionc female, exposure(totrooms) irr
+<</dd_do>>
+~~~~
+
+We interpret this exactly as before. Negative binomial models can likewise have `exposure(___)` set.
+
 ^#^^#^ Other regression models
 
 There are several other models which we will not cover, but function similarly to the above.
 
-- Poisson regression is useful when you have count data; i.e. number of visitors or number of thunderstorms in a month. It can be fit with the
-  `poisson` command, and results are interpreted similar to logistic regression (coefficients vs odds ratios); but instead of predicting a positive
-  outcome, its predicting a larger count. If you have very large counts (such that a histogram appears to show a bell curve), linear regression can be
-  used instead.
-- Poisson has the strong assumption that the mean of the outcome is equal to its variance (small average counts have little noise; large average
-  counts have a lot of noise). If this assumption is violated (or you want to check it), negative binomial regression also handles count data, without
-  that assumptions, using `nbreg`. The output will include a test of "alpha=0", if this fails to reject, then Poisson regression is sufficient.
 - There are two extensions to logistic regression, ordinal logistic and multinomial. Ordinal logistic is used when there are more than 2 outcome
   categories, and they are ordered (e.g. not sick (0), mildly sick (1), very sick (2)). Using `ologit`, Stata estimates an underlying continuous
   distribution and returns the "cut points", allowing categorization. If there are multiple groups but not ordered, e.g. race, use `mlogit` for
