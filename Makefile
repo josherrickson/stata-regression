@@ -38,5 +38,5 @@ open:
 	@open _book/index.html
 
 publish:
-	@cp -r _book/* ~/repositories/josherrickson.github.io/stata2/.
-	@cp images/* ~/repositories/josherrickson.github.io/images/.
+	@mkdir ~/repositories/josherrickson.github.io/stata-regression
+	@cp -r _book/* ~/repositories/josherrickson.github.io/stata-regression/.
