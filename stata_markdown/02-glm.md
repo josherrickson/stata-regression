@@ -1,7 +1,10 @@
 ^#^ Generalized Linear Models
 
+If the outcome variable is not continuous, while OLS will usually be able to be fit, the results may be unexpected or undesired. For example, if the
+response is a binary indicator, an OLS model fit may predict an individual has a negative response.
+
 We can generalize the [model](ordinary-least-squares.html#theory) from ordinary least squares to allow a non-linear relationship between the
-predictors and the outcome.
+predictors and the outcome, which may fit different outcomes better.
 
 Recall that the equation for OLS is
 
@@ -15,7 +18,7 @@ We can modify this by allowing the left hand side to be a function of ^$^Y^$^,
   f(Y) = \beta_0 + \beta_1X_1 + \beta_2X_2 + \cdots + \beta_pX_p + \epsilon
 ^$$^
 
-Note that this is linear in ^$^X^$^ (the right-hand side). Non-linear regession refers to something such as
+Note that this is still linear in ^$^X^$^ (the right-hand side). Non-linear regession refers to something such as
 
 ^$$^
   Y = \beta_1X_1^{\beta_2X_2} + \epsilon
@@ -34,17 +37,16 @@ Logistic regression is used when the outcome is dichotomous - either a positive 
 absence of some disease. The link function for logistic regression is logit,
 
 ^$$^
-  \textrm{logit}(x) = \textrm{log}\left(\frac{x}{1-x}\right)
+  \textrm{logit}(x) = \textrm{log}\Big(\frac{x}{1-x}\Big)
 ^$$^
 
 ^$$^
     \textrm{logit}\left(P(Y = 1 | X)\right) = \beta_0 + \beta_1X_1 + \cdots + \beta_pX_p + \epsilon.
 ^$$^
 
-Note also that unlike in OLS, the right-hand side is not the observed outcome, but rather the probability of a positive outcome. So the goal of a
+Note also that unlike in OLS, the left-hand side is not the observed outcome, but rather the probability of a positive outcome. So the goal of a
 logistic model is not to predict whether an individual will have a positive outcome, but rather to predict their probability of a positive
-outcome. This is a subtle difference, but worth pointing out as it has ramifications on [goodness of fit](#logistic-goodness-of-fit) in logistic
-models.
+outcome. This is a subtle difference, but worth pointing out since predicted values will be probabilities, not a binary response.
 
 ^#^^#^^#^ Fitting the logistic model
 
@@ -68,11 +70,10 @@ logit cellar dollarel totsqft_en i.regionc female
 <</dd_do>>
 ~~~~
 
-When you try this yourself, you may notice that its not quite as fast as `regress`. That is because for linear regression we have a "closed form
-solution" - we just do some quick math and reach an answer. However, almost every other type of regression lacks a closed form solution, so instead we
-solve it iteratively - Stata guesses at the best coefficients that minimize error^[Technically that maximizes likelihood, but that distinction is not
-important for understanding.], and keeps guessing (using the knowledge of the previous guesses) until it stops getting significantly different
-results.
+When you try this yourself, you may notice that its not quite as fast as `regress`. That is because for OLS we have a "closed form solution" - we just
+do some quick math and reach an answer. However, almost every other type of regression lacks a closed form solution, so instead we solve it
+iteratively - Stata guesses at the best coefficients that minimize error^[Technically that maximizes likelihood, but that distinction is not important
+for understanding.], and uses an algorithm to repeatedly improve those coefficients until the reduction in error is below some threshold.
 
 From this output, we get the "Number of obs" again. Instead of an ANOVA table with a F-statistic to test model significance, there is instead a "chi2"
 (^$^\chi^2^$^, pronounced "ky-squared" as in "Kyle"). In this model, we reject the null that all coefficients are identically 0.
@@ -85,9 +86,10 @@ The coefficients table is interpreted in almost the same way as with regression.
 coefficient (positive and negative respectively), and there appears to be no gender effect. There are differences between regions.
 
 However, we *cannot* nicely interpret these coefficients, which are known as the "log odds". All we can say is that "As square footage increases, the
-probability of a house having a cellar increases.
+probability of a house having a cellar increases."
 
-To add any interpretability to these coefficients, we should instead look at the odds ratios. These are the log odds, exponentiated. We can ask Stata to produce these with the `or` option.
+To add any interpretability to these coefficients, we should instead look at the odds ratios. These are the exponentiated log odds. We can ask Stata
+to produce these with the `or` option.
 
 ~~~~
 <<dd_do>>
@@ -108,7 +110,7 @@ have a basement.
 
 For continuous predictors, its the odds as the value of the predictor changes. Consider the coefficient on energy expenditure,
 <<dd_display: %9.6f exp(_b[dollarel])>>. For every 1 house of expenditure ^$^e^$^ which has a cellar, you'd expect
-<<dd_display: %9.6f exp(_b[dollarel])>> houses at expedntire ^$^e+1^$^ to have a cellar. T
+<<dd_display: %9.6f exp(_b[dollarel])>> houses at expenditure ^$^e+1^$^ to have a cellar.
 
 Those coefficients are really close to 1 due to scaling: a $1 increase or 1-sqft increase is irrelevant. Due to the non-linear relationship between
 the predictors and the outcome, we cannot simply multiply the odds ratios. Instead, let's scale the variables and re-fit the model.
@@ -239,6 +241,8 @@ Collinearity, overfitting, and model selection remain concerns in the logistic m
 
 Robust standard errors via `vce(robust)` are supported.
 
+One other common cause of failed convergence is scaling - try scaling all your variables and see if that improves convergence.
+
 ^#^^#^^#^ `logit` vs `logistic`
 
 Instead of `logit`, we could run the `logistic` command. The only difference is that `logistic` reports the odds ratio by default whereas `logit`
@@ -246,10 +250,11 @@ reports the log odds. My personal preference is `logit`, but there's no need to 
 
 ^#^^#^^#^ Sample size concerns
 
-When the percent of positive outcomes is close to 50%, the rules we [discussed for OLS] hold, 10-20 observations per predictor. As the percent of
-positive outcomes deviates from 50%, you may need a much larger sample size - mostly to ensure a reasonable number of both positive and negative
-outcomes. For example, if you expect 5% of individuals to have a positive outcome, and have a sample size of 40, that's only 2 individuals with a
-positive outcome! Instead you should strive to have at least 10 or ideally over 100 individuals per outcome.
+When the percent of positive outcomes is close to 50%, the rules we [discussed for OLS](ordinary-least-squares.html#overfitting) hold, 10-20
+observations per predictor. As the percent of positive outcomes deviates from 50%, you may need a much larger sample size - mostly to ensure a
+reasonable number of both positive and negative outcomes. For example, if you expect 5% of individuals to have a positive outcome, and have a sample
+size of 40, that's only 2 individuals with a positive outcome! Instead you should strive to have at least 10 or ideally over 100 individuals per
+outcome.
 
 ^#^^#^^#^ Rare outcomes
 
@@ -359,10 +364,10 @@ We interpret this exactly as before. Negative binomial models can likewise have 
 
 ^#^^#^ Other regression models
 
-There are several other models which we will not cover, but function similarly to the above.
+There are two extensions to logistic regression, ordinal logistic and multinomial logistic.
 
-- There are two extensions to logistic regression, ordinal logistic and multinomial. Ordinal logistic is used when there are more than 2 outcome
-  categories, and they are ordered (e.g. not sick (0), mildly sick (1), very sick (2)). Using `ologit`, Stata estimates an underlying continuous
-  distribution and returns the "cut points", allowing categorization. If there are multiple groups but not ordered, e.g. race, use `mlogit` for
-  multinomial logistic regression. It essentially fits a model predicting membership in each group versus all other, with some restrictions across the
-  models.
+Ordinal logistic is used when there are more than 2 outcome categories, and they are ordered (e.g. not sick (0), mildly sick (1), very sick
+(2)). Using `ologit`, Stata estimates an underlying continuous distribution and returns the "cut points", allowing categorization.
+
+If there are multiple groups but not ordered, e.g. race, use `mlogit` for multinomial logistic regression. It essentially fits a model predicting
+membership in each group versus all other, with some restrictions across the models.
