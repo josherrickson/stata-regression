@@ -3,10 +3,7 @@
 Regression is a term for a wide range of very common statistical modeling designed to estimate the relationship between a set of variables. The nature
 of the variables and the hypothesized relationship between the variables affect which choice of regression is to be used.
 
-In this set of notes we will talk about generalized linear models, one of the two most commonly used forms of regression (the other being mixed
-effects regression, which is the subject of [a follow-up set of notes]() FIX ME).
-
-We will start with the most basic form of regression, linear regression, and build up from there.
+We will start with the most basic form of regression, linear regression.
 
 ^#^^#^ Terminology
 
@@ -23,7 +20,7 @@ squares (OLS)". A lot of the time, if you see a reference to "regression" withou
 
 ^#^^#^ Theory
 
-Ordinay Least Squares regression is the most basic form of regression. This is suitable for situations where you have some number of predictor
+Ordinary Least Squares regression is the most basic form of regression. This is suitable for situations where you have some number of predictor
 variables and the goal is to establish a linear equation which predicts a continuous outcome. Technically the outcome need not be continuous, but
 there are often better forms of regression to use for non-continuous outcomes. The term "linear equation" refers back to high school geometry and the
 equation for a line,
@@ -82,22 +79,16 @@ We will now fit a model, discussing assumptions afterwards, because almost all a
 
 ^#^^#^ Fitting the model
 
-For demonstration purposes, we'll use the [2015 Residentical Energy Consumption Survey
+For demonstration purposes, we'll use the [2015 Residential Energy Consumption Survey
 (RECS)](https://www.eia.gov/consumption/residential/data/2015/index.php?view=microdata). This is a public data-set made available by the governmental
-Energy Information Administation containing household level information about "energy characteristics on the housing unit, usage patterns, and
-household demographics"^[https://www.eia.gov/consumption/residential/about.php]
+Energy Information Administration containing household level information about "energy characteristics on the housing unit, usage patterns, and
+household demographics"^[https://www.eia.gov/consumption/residential/about.php].
 
 ~~~~
 <<dd_do>>
 import delimited https://www.eia.gov/consumption/residential/data/2015/csv/recs2015_public_v3.csv
 <</dd_do>>
 ~~~~
-
-Stata's `regress` command fit the linear regression model. The general syntax is
-
-```
-regress <outcome> <predictors>
-```
 
 Let's fit a model predicting dollar expenditure on electricity (`dollarel`) based upon the square footage of the house (`totsqft_en`) and the gender
 of the respondent (`hhsex`). Before we fit the model, we want to briefly explore each variable involved.
@@ -111,8 +102,8 @@ histogram dollarel
 
 <<dd_graph: replace>>
 
-We see here that expenditure on electricty ranges from under $ 20 to over $ 8000, though the vast majority seem to be between a few hundred dollars
-and $ 2000-3000. We will discuss a bit [later]() FIX ME how to handle right-skewed variables.
+We see here that expenditure on electricity ranges from under $ 20 to over $ 8000, though the vast majority seem to be between a few hundred dollars
+and $ 2000-3000. We will discuss a bit [later](#variable-transformations) approaches for dealing with right-skewed data.
 
 ~~~~
 <<dd_do>>
@@ -143,6 +134,14 @@ tab female
 
 Now `female` will be a 1 if the respondent is female and 0 otherwise.
 
+Stata's `regress` command fit the linear regression model. The general syntax is
+
+```
+regress <outcome> <predictors>
+```
+
+So we fit the model:
+
 ~~~~
 <<dd_do>>
 regress dollarel totsqft_en female
@@ -172,14 +171,14 @@ Next, the top right part has a series of measures.
   smaller ^$^R^2^$^ can be considered good as well. The ^$^R^2^$^ of <<dd_display: %9.2f e(r2)>> is low, though it's not so close to 0 as to be
   meaningless.
 - Mathematically, adding a new predictor to the model will increase the ^$^R^2^$^, regardless of how useless the variable is.^[The only exception is
-  if the predictor being added is either constant or identical to another variable, in which case the regression model won't estimate a coefficient
-  for it anyways.] This makes ^$^R^2^$^ poor for model comparison, as it would always select the model with the most predictors. Instead, the adjusted
+  if the predictor being added is either constant or identical to another variable, in which case Stata would drop the variable before fitting the
+  model anyways..] This makes ^$^R^2^$^ poor for model comparison, as it would always select the model with the most predictors. Instead, the adjusted
   ^$^R^2^$^ ("Adj R-Squared") accounts for this; it penalizes the ^$^R^2^$^ by the number of predictors in the model. Use the ^$^R^2^$^ to measure
   model fit, use the adjusted ^$^R^2^$^ for model comparison.
 - The root mean squared error ("Root MSE", as known as RMSE) is a measure of the average difference between the observed outcome and the predicted
-  outcome. It can be used as another measure of model fit, as it is on the scale of the outcome variable. So for this example, the RMSE is
-  <<dd_display: %9.2f e(rmse)>> so the average error is about $<<dd_display: %9.2f e(rmse)>>. Recall that we saw before that expenditure ranged to
-  $ 8000, so an error of $<<dd_display: %9.0f e(rmse)>> is low, but not insignificant.
+  outcome. It can be used an intuitive measure of model fit, as it is on the scale of the outcome variable. So for this example, the RMSE is
+  <<dd_display: %9.2f e(rmse)>> so on average, this model would mis-predict the electricity expenditure by about $<<dd_display: %9.2f
+  e(rmse)>>. Recall that we saw before that expenditure ranged to $ 8000, so an error of $<<dd_display: %9.2f e(rmse)>> is low, but not insignificant.
 
 Finally, we get to the coefficient table. Each row represents a single predictor. The "\_cons" row is the intercept; it's Coef. of
 <<dd_display: %9.2f _b[_cons]>> represents the average response *when all other predictors are 0*. Given that square-footage cannot be 0, this is
@@ -195,8 +194,10 @@ meaningless and can be ignored. (Note that we cannot exclude the constant, we ar
 - "t": This is the standardized coefficient, calculated as Coef./Std. Err. We can't directly compare the Coef.'s because of the different scales, but
   we can examine the standardized coefficients to get a sense of which predictor has a larger impact. In this model, we see that the impact of square
   footage is much more than the impact of gender.
-- "P>|t|": The p-value testing whether the coefficient is significantly different than 0. In this model, we see that square footage is significant,
-  while there appears to be no gender difference.
+- "P>|t|": The p-value testing whether the coefficient is significantly different than 0. We see that the p-value on square footage is low, so
+  therefore we have evidence that the population coefficient is not zero - implying we've found a relationship between square footage and
+  expenditure. On the other hand, the p-value for female is high, so cannot reject the possibility that the coefficient is zero and that there is no
+  relationship.
 - "[95% Conf. interval]": A range of possible values.
 
 Whenever we look at any model, a distinction needs to be drawn between statistical significance and practical significance. While these two
@@ -212,9 +213,9 @@ conclusively say is that we do not have enough evidence to claim there is a diff
 
 ^#^^#^ Including categorical predictors
 
-Let's say we want to add `regionc` to the model. This is a variable that identifies which region (Northeast, Midwest, South, West) the respondent
-lives in. It's reasonable to test whether the energy expenditures differs by region, regardless of the size of the home. Let's naively add it to the
-model.
+Let's say we want to add some location information to the model. There is a variable (`regionc`) that identifies which region (Northeast, Midwest,
+South, West) the respondent lives in. It's reasonable to test whether the energy expenditures differs by region, regardless of the size of the
+home. Let's naively add it to the model.
 
 ~~~~
 <<dd_do>>
@@ -227,10 +228,10 @@ use categorical predictors. Instead, the regression model requires a series a du
 `south` - Is this respondent in the South?) for which each respondent has a single positive (1) response and the remainder negative (0) responses.
 
 While we could create this ourselves^[You could use `tab regionc, generate(region)` to create it.], something we'd likely have to do in a software
-like SPSS, Stata (and most modern software) can handle this automatically. The issue is that Stata doesn't know we want to treat `regionc` as
+like SPSS, but Stata (and most modern software) can handle this automatically. The issue is that Stata doesn't know we want to treat `regionc` as
 categorical. If we prefix the variable name with `i.`, Stata will know it is categorical.
 
-First, let's look at the regions and add appropriate lables from the codebook.
+First, let's look at the regions and add appropriate labels from the codebook.
 
 ~~~~
 <<dd_do>>
@@ -246,15 +247,19 @@ regress dollarel totsqft_en female i.regionc
 <</dd_do>>
 ~~~~
 
+(Note: Older versions of Stata require prefacing the command with `xi:` before it would recognize the `i.`, e.g. `xi: regress dollarel totsqft_en
+female i.regionc`. `xi:` was deprecated a number of years ago, but you may see this used in older code online or by users who do not stay up to
+date.)
+
 This model is improved, considering the Adjusted ^$^R^2^$^ values. The coefficient (and significance) on square footage is not really changed, but
 notice the magnitude of the coefficient on `female` has changed drastically. This implies that gender and region were correlated, and when we did not
-control for region, gender was including it's effect. We will discuss [multicollinearity later](#multicollinearity), as well as why this is why [model
-selection is bad](#model-selection-is-bad).
+control for region, gender was including it's effect. We will discuss [multicollinearity later](#multicollinearity), as well as why this is one reason
+why [model selection is bad](#model-selection-is-bad).
 
 Now we see 3 rows for `regionc`, each corresponding to a comparison between region "Northeast" and the given row. When we include a categorical
 variable, one group is excluded as the baseline. By default, Stata removes the first group (here 1, Northeast). So we can see that the Midwest
 compared to the northeast has statistically significantly lower expenditure, with an average reduction of
-$<<dd_display: %9.2f abs(_b[2.regionc])>>. Those in the South have higher averae expenditure compared to Northeast, and those in the West have lower
+$<<dd_display: %9.2f abs(_b[2.regionc])>>. Those in the South have higher average expenditure compared to Northeast, and those in the West have lower
 average expenditure.
 
 We do not see a comparison of, for example, South versus West. To see the other comparisons we can use the `margins` command.
@@ -267,10 +272,12 @@ margins regionc, pwcompare(pv)
 ~~~~
 
 The first `margins` call, without any options, displays the marginal means for each category - if every respondent was from the given region, what is
-the average predicted expenditure. The t-test here is useless - it's only testing that the average expenditure is non-zero. We see that the lowest average expenditure is in the Midest, the highest in the South.
+the average predicted expenditure. The t-test here is useless - it's only testing that the average expenditure is non-zero. We see that the lowest
+average expenditure is in the Midwest, the highest in the South.
 
 The second `margins` call adds the `pwcompare(pv)` option, which performs pairwise test between each pair of regions. This is similar to a post-hoc
-test from ANOVA if you are familiar with it. All regions are statistically significant from each other.
+test from ANOVA if you are familiar with it. All regions are statistically significant from each other. Notice that the three comparisons to Northwest
+are identical to the results in the regression output.
 
 By default, using `i.` makes the first level (lowest numerical value) as the reference category. You can adjust this by using `ib#.` instead, such as:
 
@@ -312,8 +319,8 @@ then to add an interaction between ^$^X_1^$^ and ^$^X_2^$^, we simply add a new 
 Adding these to the `regress` call is almost as easy. We'll use `#` or `##` instead. `#` includes only the interaction, whereas `##` includes both the
 interaction and the main effects.
 
-- `a#b`: Only the interaction
-- `a##b`: Main effect for `a`, main effect for `b`, and the interaction.
+- `a#b`: Only the interaction (forcing ^$^\beta_1^$^ and ^$^\beta_2^$^ in the example above to be identically 0 - so rarely used).
+- `a##b`: Main effect for `a`, main effect for `b`, and the interaction (most common way of specifying).
 - `a b a#b`: Same as `a##b`
 - `a b a##b`: Same as `a##b`, except it'll be uglier because you're including main effects twice and one will be ignored.
 
@@ -338,8 +345,8 @@ margins region, dydx(totsqft_en)
 
 The `dydx()` option specifies that instead of marginal means (as we had above), we want to look at marginal slopes - that is, the slope between square
 footage and expenditure in each region. Recall that without the interaction the coefficient associated with square footage was approximately .25. Here
-we see that in the South and West that relationship is actually steeper, while in the Northeast and Midwest it's shallower. Here the t-tests are
-more interesting, testing whether the slop in each region is significantly different than zero.
+we see that in the South and West that relationship is actually steeper, while in the Northeast and Midwest it's shallower. The t-tests are testing
+whether the slope in each region is significantly different than zero.
 
 Note that the slope in Northeast in the margins call is identical to the main effect of square footage. The `margins` command is not telling us
 anything we could not have obtained or calculated from the regression output - it's just doing so with minimal effort and maximal clarity.
@@ -382,13 +389,26 @@ option alongside the `at()` option to test for differences in region at specific
 ^#^^#^^#^ Centering
 
 Some sources suggest centering continuous predictors before including them in an interaction. This will change the coefficients in the regression
-output, but will not fit a different model. What may be usefl is the main effects of terms involved in the interaction are now when the other variable
-is at it's mean, rather than at 0. For example, in the model above with the interaction of square footage and region, the coefficients on region are
-the differences in region when square footage is 0 - not interesting. If we centered square footage, then the coefficients on region would be testing
-for differences when square footage is at it's mean.
+output, but will not fit a different model. What may be useful is the main effects of terms involved in the interaction are now when the other
+variable is at it's mean, rather than at 0. For example, in the model above with the interaction of square footage and region, the coefficients on
+region are the differences in region when square footage is 0 - not interesting. If we centered square footage, then the coefficients on region would
+be testing for differences when square footage is at it's mean.
 
 However, once again, **this is not fitting a different model**. The results will be identical. I'd always recommend looking at the margins and
 interaction plot, even if you do center.
+
+^#^^#^^#^ Fitting Separate Models
+
+A natural instinct when asking the question "does the relationship between X and Y differ by group" would be to fit separate models for each
+group. This is equivalent to interacting group with *every predictor* in the model.
+
+The downside of this approach is that each individual model is less powerful that fitting one overall model.
+
+The upside is that the interpretation may be a bit easier.
+
+If you go this approach, you can use the `estimates store` commands to save each model, then use `lrtest` to compare models (test whether all
+coefficients are equal between models) or use `suest` with `test` to test individual coefficients. See for example [this UCLA
+page](https://stats.idre.ucla.edu/stata/code/comparing-regression-coefficients-across-groups-using-suest/).
 
 ^#^^#^ Robust standard errors
 
@@ -447,7 +467,8 @@ a pattern (the third). (We will discuss the second plot [below](#errors-are-homo
 
 ![](https://i.stack.imgur.com/rtn7e.png)
 
-If this assumption is violated, you will need to reconsider the structure in your model, perhaps by adding a squared term (e.g. `reg y c.x c.x#c.x`).
+If this assumption is violated, you will need to reconsider the structure in your model, perhaps by adding a squared term (e.g. `reg y c.x c.x#c.x`)
+or in this case, trying a [log transformation](#variable-transformations).
 
 ^#^^#^^#^^#^ Obtaining predicted values and residuals
 
@@ -476,6 +497,8 @@ twoway scatter resids linearpredictor
 
 <<dd_graph: replace>>
 
+.
+
 ^#^^#^^#^ Errors are homogeneous
 
 "Homogeneity" is a fancy term for "uniform in distribution", whereas "heterogeneity" represents "not uniform in distribution". If we were to take a
@@ -490,15 +513,16 @@ This is an assumption we can examine, again with the residuals vs fitted plot. W
 increasing/decreasing variability on the y-axis over time. Refer back to the [image above](#relationship-is-linear-and-additive), looking at the
 middle plot. As the fitted values increase, the error spreads out.
 
-If this assumption is violated, you may consider restructuring your model as above, or transforming either your response or predictors using log
-transforms.
+If this assumption is violated, you may consider restructuring your model as above, or [transforming](#variable-transformations) either your response
+or predictors using log transforms.
 
 ^#^^#^^#^ Independence
 
-This last assumption is that each row of your data is independent. If you have repeated measures, this is violated. If you have subjects drawn from
+The last assumption is that each row of your data is independent. If you have repeated measures, this is violated. If you have subjects drawn from
 groups (i.e. students in classrooms), this is violated. There is no way to test for this, it requires knowing the data set.
 
-If this assumption is violated, consider fitting a [mixed model](mixed-models.html) instead.
+This is, by far, the most important assumption. If this assumption is violated, some sort of repeated measures approach may be more appropriate such
+as mixed effects regression.
 
 ^#^^#^ Variable Transformations
 
@@ -522,8 +546,8 @@ regress lgdollarel c.totsqft_en##i.regionc female, vce(robust)
 
 We see a slight improvement to the model, though expenditure did not start out too skewed.
 
-Once we make this transformation, the intepretation of the coefficients change. By exponentiating the coefficients, we can determine the new
-intepretation. (Calling `regress` or any estimation command after running one replays the results without having to re-calculate them.)
+Once we make this transformation, the interpretation of the coefficients change. By exponentiating the coefficients, we can determine the new
+interpretation. (Calling `regress` or any estimation command after running one replays the results without having to re-calculate them.)
 
 ~~~~
 <<dd_do>>
@@ -533,7 +557,7 @@ regress, eform("Exp(Coef.)")
 
 The string in quotes ("Exp(Coef.)") is irrelevant and only for display purposes, `eform` is the important option. Now you can interpret each
 coefficient as the percent change in the outcome for a 1-unit increase in the predictor. For example, a coefficient of 1.15 would indicate that for a
-1-unit increase in x, you predict an average increaes of 15% in y. A coefficient of .89 would predict an average decrease of 11% in y.
+1-unit increase in x, you predict an average increase of 15% in y. A coefficient of .89 would predict an average decrease of 11% in y.
 
 ^#^^#^ Miscellaneous concerns
 
