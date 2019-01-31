@@ -15,8 +15,8 @@ The variable we are predicting can be called the "outcome", the "response" or th
 
 The variables upon which we are predicting can be called "predictors", "covariates", or "independent variables".
 
-The model we're going to start discussing is called "linear regression". You may also have this called "least squares regression" or "ordinary least
-squares (OLS)". A lot of the time, if you see a reference to "regression" without specifying the type, they are referring to linear regression.
+The model we're going to start discussing is called "linear regression". You may also have heard this called "least squares regression" or "ordinary
+least squares (OLS)". A lot of the time, if you see a reference to "regression" without specifying the type, they are referring to linear regression.
 
 ^#^^#^ Theory
 
