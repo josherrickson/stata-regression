@@ -127,7 +127,7 @@ Note once again that the model fit characteristics haven't changed; we've fit th
 more reasonable. As the expenditure increases by $1000, the odds of having a cellar decrease by <<dd_display: %9.0f 100*(1 - exp(_b[dollarel1000]))>>%.
 
 For every additional 1000-square feet, the odds of having a cellar increases by <<dd_display: %9.0f 100*(exp(_b[totsqft1000])-1)>>%. In other words,
-for every two 2000-square foot house, you'd expect five 3000-square foot houses.
+for every two 2000-square foot house that have a cellar, you'd expect five 3000-square foot houses to have cellars.
 
 ^#^^#^^#^ Categorical Variables and Interactions
 
