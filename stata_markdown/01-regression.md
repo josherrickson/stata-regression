@@ -15,8 +15,8 @@ The variable we are predicting can be called the "outcome", the "response" or th
 
 The variables upon which we are predicting can be called "predictors", "covariates", or "independent variables".
 
-The model we're going to start discussing is called "linear regression". You may also have this called "least squares regression" or "ordinary least
-squares (OLS)". A lot of the time, if you see a reference to "regression" without specifying the type, they are referring to linear regression.
+The model we're going to start discussing is called "linear regression". You may also have heard this called "least squares regression" or "ordinary
+least squares (OLS)". A lot of the time, if you see a reference to "regression" without specifying the type, they are referring to linear regression.
 
 ^#^^#^ Theory
 
@@ -177,8 +177,9 @@ Next, the top right part has a series of measures.
   model fit, use the adjusted ^$^R^2^$^ for model comparison.
 - The root mean squared error ("Root MSE", as known as RMSE) is a measure of the average difference between the observed outcome and the predicted
   outcome. It can be used an intuitive measure of model fit, as it is on the scale of the outcome variable. So for this example, the RMSE is
-  <<dd_display: %9.2f e(rmse)>> so on average, this model would mis-predict the electricity expenditure by about $<<dd_display: %9.2f
-  e(rmse)>>. Recall that we saw before that expenditure ranged to $ 8000, so an error of $<<dd_display: %9.2f e(rmse)>> is low, but not insignificant.
+  <<dd_display: %9.2f e(rmse)>> so on average, this model would mis-predict the electricity expenditure by about
+  $<<dd_display: %9.2f e(rmse)>>. Recall that we saw before that expenditure ranged to $ 8000, so an error of $<<dd_display: %9.2f e(rmse)>>
+  is low, but not insignificant.
 
 Finally, we get to the coefficient table. Each row represents a single predictor. The "\_cons" row is the intercept; it's Coef. of
 <<dd_display: %9.2f _b[_cons]>> represents the average response *when all other predictors are 0*. Given that square-footage cannot be 0, this is
