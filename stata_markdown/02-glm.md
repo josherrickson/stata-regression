@@ -234,8 +234,15 @@ need a model to inform you of that.
 
 ^#^^#^^#^ `logit` Miscellaneous.
 
-The `logit` model supports the margins command just like `regress` does. It does not support `estat vif` because variance inflation factors are not
-defined for logistic models.
+The `logit` model supports the margins command just like `regress` does.
+
+It does not support `estat vif`, but you can re-run the model as with `regress` as the VIF does not depend on the outcome. E.g.,
+
+```
+logit y a b c
+regress y a b c
+estat vif
+```
 
 Collinearity, overfitting, and model selection remain concerns in the logistic model.
 
