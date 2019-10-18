@@ -8,4 +8,4 @@ rsconnect
 0*.Rmd
 *.log
 .DS_Store
-*.svg
+stata_markdown/*.svg

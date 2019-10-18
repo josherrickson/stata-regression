@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Regression Modeling in Stata</title>
+  <meta name="description" content="Regression Modeling in Stata" />
+  <meta name="generator" content="bookdown 0.14 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Regression Modeling in Stata" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Regression Modeling in Stata" />
+  
+  
+  
+
+<meta name="author" content="Josh Errickson" />
+
+
+<meta name="date" content="2019-10-18" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+
+<link rel="next" href="ordinary-least-squares.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/standard_html.css" type="text/css" />
+<link rel="stylesheet" href="css/book.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./index.html">Regression Modeling in Stata</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a><ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#how-to-use-this-document"><i class="fa fa-check"></i><b>1.1</b> How to use this document</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="index.html#contact-information"><i class="fa fa-check"></i><b>1.2</b> Contact information</a><ul>
+<li class="chapter" data-level="1.2.1" data-path="index.html"><a href="index.html#cscar"><i class="fa fa-check"></i><b>1.2.1</b> CSCAR</a></li>
+<li class="chapter" data-level="1.2.2" data-path="index.html"><a href="index.html#author"><i class="fa fa-check"></i><b>1.2.2</b> Author</a></li>
+</ul></li>
+<li class="chapter" data-level="1.3" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.3</b> Usage</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html"><i class="fa fa-check"></i><b>2</b> Ordinary Least Squares</a><ul>
+<li class="chapter" data-level="2.1" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#terminology"><i class="fa fa-check"></i><b>2.1</b> Terminology</a></li>
+<li class="chapter" data-level="2.2" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#theory"><i class="fa fa-check"></i><b>2.2</b> Theory</a></li>
+<li class="chapter" data-level="2.3" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#fitting-the-model"><i class="fa fa-check"></i><b>2.3</b> Fitting the model</a></li>
+<li class="chapter" data-level="2.4" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#including-categorical-predictors"><i class="fa fa-check"></i><b>2.4</b> Including categorical predictors</a></li>
+<li class="chapter" data-level="2.5" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#interactions"><i class="fa fa-check"></i><b>2.5</b> Interactions</a><ul>
+<li class="chapter" data-level="2.5.1" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#centering"><i class="fa fa-check"></i><b>2.5.1</b> Centering</a></li>
+<li class="chapter" data-level="2.5.2" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#fitting-separate-models"><i class="fa fa-check"></i><b>2.5.2</b> Fitting Separate Models</a></li>
+</ul></li>
+<li class="chapter" data-level="2.6" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#robust-standard-errors"><i class="fa fa-check"></i><b>2.6</b> Robust standard errors</a></li>
+<li class="chapter" data-level="2.7" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#assumptions"><i class="fa fa-check"></i><b>2.7</b> Assumptions</a><ul>
+<li class="chapter" data-level="2.7.1" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#relationship-is-linear-and-additive"><i class="fa fa-check"></i><b>2.7.1</b> Relationship is linear and additive</a></li>
+<li class="chapter" data-level="2.7.2" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#errors-are-homogeneous"><i class="fa fa-check"></i><b>2.7.2</b> Errors are homogeneous</a></li>
+<li class="chapter" data-level="2.7.3" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#independence"><i class="fa fa-check"></i><b>2.7.3</b> Independence</a></li>
+</ul></li>
+<li class="chapter" data-level="2.8" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#variable-transformations"><i class="fa fa-check"></i><b>2.8</b> Variable Transformations</a></li>
+<li class="chapter" data-level="2.9" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#miscellaneous-concerns"><i class="fa fa-check"></i><b>2.9</b> Miscellaneous concerns</a><ul>
+<li class="chapter" data-level="2.9.1" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#multicollinearity"><i class="fa fa-check"></i><b>2.9.1</b> Multicollinearity</a></li>
+<li class="chapter" data-level="2.9.2" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#overfitting"><i class="fa fa-check"></i><b>2.9.2</b> Overfitting</a></li>
+<li class="chapter" data-level="2.9.3" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#model-selection-is-bad"><i class="fa fa-check"></i><b>2.9.3</b> Model Selection is bad</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html"><i class="fa fa-check"></i><b>3</b> Generalized Linear Models</a><ul>
+<li class="chapter" data-level="3.1" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#logistic-regression"><i class="fa fa-check"></i><b>3.1</b> Logistic Regression</a><ul>
+<li class="chapter" data-level="3.1.1" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#fitting-the-logistic-model"><i class="fa fa-check"></i><b>3.1.1</b> Fitting the logistic model</a></li>
+<li class="chapter" data-level="3.1.2" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#categorical-variables-and-interactions"><i class="fa fa-check"></i><b>3.1.2</b> Categorical Variables and Interactions</a></li>
+<li class="chapter" data-level="3.1.3" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#margins-and-predict"><i class="fa fa-check"></i><b>3.1.3</b> <code>margins</code> and <code>predict</code></a></li>
+<li class="chapter" data-level="3.1.4" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#logistic-regression-assumptions"><i class="fa fa-check"></i><b>3.1.4</b> Logistic regression assumptions</a></li>
+<li class="chapter" data-level="3.1.5" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#logistic-goodness-of-fit"><i class="fa fa-check"></i><b>3.1.5</b> Logistic goodness of fit</a></li>
+<li class="chapter" data-level="3.1.6" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#separation"><i class="fa fa-check"></i><b>3.1.6</b> Separation</a></li>
+<li class="chapter" data-level="3.1.7" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#logit-miscellaneous."><i class="fa fa-check"></i><b>3.1.7</b> <code>logit</code> Miscellaneous.</a></li>
+<li class="chapter" data-level="3.1.8" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#logit-vs-logistic"><i class="fa fa-check"></i><b>3.1.8</b> <code>logit</code> vs <code>logistic</code></a></li>
+<li class="chapter" data-level="3.1.9" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#sample-size-concerns"><i class="fa fa-check"></i><b>3.1.9</b> Sample size concerns</a></li>
+<li class="chapter" data-level="3.1.10" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#rare-outcomes"><i class="fa fa-check"></i><b>3.1.10</b> Rare outcomes</a></li>
+</ul></li>
+<li class="chapter" data-level="3.2" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#poisson-regression"><i class="fa fa-check"></i><b>3.2</b> Poisson regression</a><ul>
+<li class="chapter" data-level="3.2.1" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#fitting-the-model-1"><i class="fa fa-check"></i><b>3.2.1</b> Fitting the model</a></li>
+<li class="chapter" data-level="3.2.2" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#interactions-categorical-variables-margins-predict"><i class="fa fa-check"></i><b>3.2.2</b> Interactions, categorical variables, <code>margins</code>, <code>predict</code></a></li>
+<li class="chapter" data-level="3.2.3" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#assumptions-1"><i class="fa fa-check"></i><b>3.2.3</b> Assumptions</a></li>
+<li class="chapter" data-level="3.2.4" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#exposure"><i class="fa fa-check"></i><b>3.2.4</b> Exposure</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html#other-regression-models"><i class="fa fa-check"></i><b>3.3</b> Other regression models</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Regression Modeling in Stata</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="header">
+<h1 class="title">Regression Modeling in Stata</h1>
+<p class="author"><em>Josh Errickson</em></p>
+<p class="date"><em>2019-10-18</em></p>
+</div>
+<div id="preface" class="section level1">
+<h1><span class="header-section-number">Chapter 1</span> Preface</h1>
+<div id="how-to-use-this-document" class="section level2">
+<h2><span class="header-section-number">1.1</span> How to use this document</h2>
+<p>These notes are published in <a href="https://bookdown.org/">bookdown</a> format which enables easy creation of longform documents (using a mixture of
+<a href="https://daringfireball.net/projects/markdown/">markdown</a>, <a href="https://www.r-project.org/">R</a>, and for these notes specifically,
+<a href="http://www.stata.com/">Stata</a>’s <a href="http://www.stata.com/manuals/pdyndoc.pdf">dyndoc</a>, which was added in Stata 15).</p>
+<p>The table of contents is found on the left hand side, with subsections expanding below the current section. At the top of the page are three icons,
+from left to right they 1) Hide/show the table of contents, 2) Search this document, and 3) Change the font the book is displayed in.</p>
+<p>All images should link to full-size versions to see detail if needed.</p>
+</div>
+<div id="contact-information" class="section level2">
+<h2><span class="header-section-number">1.2</span> Contact information</h2>
+<div id="cscar" class="section level3">
+<h3><span class="header-section-number">1.2.1</span> CSCAR</h3>
+<ul>
+<li>Office Hours: Monday-Friday 9am to 5pm (Closed Tuesday 12-1pm)</li>
+<li>Phone: 734.764.7828</li>
+<li>Statistical Assistance: <a href="mailto:stats-consulting@umich.edu" class="email">stats-consulting@umich.edu</a></li>
+<li>Data Science Assistance: <a href="mailto:ds-consulting@umich.edu" class="email">ds-consulting@umich.edu</a></li>
+<li>High Performance Computing: <a href="mailto:hpc-consulting@umich.edu" class="email">hpc-consulting@umich.edu</a></li>
+<li><a href="http://cscar.research.umich.edu/" class="uri">http://cscar.research.umich.edu/</a></li>
+</ul>
+</div>
+<div id="author" class="section level3">
+<h3><span class="header-section-number">1.2.2</span> Author</h3>
+<ul>
+<li>Josh Errickson</li>
+<li>3550 Rackham Building</li>
+<li>915 E. Washington Street</li>
+<li>Ann Arbor, MI 48109-1070</li>
+<li>Email: <a href="mailto:jerrick@umich.edu" class="email">jerrick@umich.edu</a></li>
+</ul>
+</div>
+</div>
+<div id="usage" class="section level2">
+<h2><span class="header-section-number">1.3</span> Usage</h2>
+<p>This material was created for use in workshops and short courses presented by faculty and staff from the Consulting for Statistics, Computing &amp;
+Analytics Research (CSCAR) at the University of Michigan. No part of this material may be used for other purposes, copied, changed, or sold.</p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+
+<a href="ordinary-least-squares.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": null,
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
