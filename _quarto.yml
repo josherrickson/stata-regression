@@ -1,0 +1,18 @@
+project:
+  type: book
+  pre-render: make stata
+  output-dir: docs
+
+book:
+  title: "Regression Modeling in Stata"
+  chapters:
+    - index.qmd
+    - 01-regression.qmd
+    - 02-glm.qmd
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: [cosmo, theme-dark.scss]
+    callout-appearance: simple

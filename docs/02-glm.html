@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Regression Modeling in Stata - 2&nbsp; Generalized Linear Models</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./01-regression.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark.min.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./02-glm.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Generalized Linear Models</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Regression Modeling in Stata</a> 
+        <div class="sidebar-tools-main">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-regression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Ordinary Least Squares</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-glm.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Generalized Linear Models</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#logistic-regression" id="toc-logistic-regression" class="nav-link active" data-scroll-target="#logistic-regression"><span class="header-section-number">2.1</span> Logistic Regression</a>
+  <ul class="collapse">
+  <li><a href="#fitting-the-logistic-model" id="toc-fitting-the-logistic-model" class="nav-link" data-scroll-target="#fitting-the-logistic-model"><span class="header-section-number">2.1.1</span> Fitting the logistic model</a></li>
+  <li><a href="#categorical-variables-and-interactions" id="toc-categorical-variables-and-interactions" class="nav-link" data-scroll-target="#categorical-variables-and-interactions"><span class="header-section-number">2.1.2</span> Categorical Variables and Interactions</a></li>
+  <li><a href="#margins-and-predict" id="toc-margins-and-predict" class="nav-link" data-scroll-target="#margins-and-predict"><span class="header-section-number">2.1.3</span> <code>margins</code> and <code>predict</code></a></li>
+  <li><a href="#logistic-regression-assumptions" id="toc-logistic-regression-assumptions" class="nav-link" data-scroll-target="#logistic-regression-assumptions"><span class="header-section-number">2.1.4</span> Logistic regression assumptions</a></li>
+  <li><a href="#logistic-goodness-of-fit" id="toc-logistic-goodness-of-fit" class="nav-link" data-scroll-target="#logistic-goodness-of-fit"><span class="header-section-number">2.1.5</span> Logistic goodness of fit</a></li>
+  <li><a href="#separation" id="toc-separation" class="nav-link" data-scroll-target="#separation"><span class="header-section-number">2.1.6</span> Separation</a></li>
+  <li><a href="#logit-miscellaneous." id="toc-logit-miscellaneous." class="nav-link" data-scroll-target="#logit-miscellaneous."><span class="header-section-number">2.1.7</span> <code>logit</code> Miscellaneous.</a></li>
+  <li><a href="#logit-vs-logistic" id="toc-logit-vs-logistic" class="nav-link" data-scroll-target="#logit-vs-logistic"><span class="header-section-number">2.1.8</span> <code>logit</code> vs <code>logistic</code></a></li>
+  <li><a href="#sample-size-concerns" id="toc-sample-size-concerns" class="nav-link" data-scroll-target="#sample-size-concerns"><span class="header-section-number">2.1.9</span> Sample size concerns</a></li>
+  <li><a href="#rare-outcomes" id="toc-rare-outcomes" class="nav-link" data-scroll-target="#rare-outcomes"><span class="header-section-number">2.1.10</span> Rare outcomes</a></li>
+  </ul></li>
+  <li><a href="#poisson-regression" id="toc-poisson-regression" class="nav-link" data-scroll-target="#poisson-regression"><span class="header-section-number">2.2</span> Poisson regression</a>
+  <ul class="collapse">
+  <li><a href="#fitting-the-model" id="toc-fitting-the-model" class="nav-link" data-scroll-target="#fitting-the-model"><span class="header-section-number">2.2.1</span> Fitting the model</a></li>
+  <li><a href="#interactions-categorical-variables-margins-predict" id="toc-interactions-categorical-variables-margins-predict" class="nav-link" data-scroll-target="#interactions-categorical-variables-margins-predict"><span class="header-section-number">2.2.2</span> Interactions, categorical variables, <code>margins</code>, <code>predict</code></a></li>
+  <li><a href="#assumptions" id="toc-assumptions" class="nav-link" data-scroll-target="#assumptions"><span class="header-section-number">2.2.3</span> Assumptions</a></li>
+  <li><a href="#exposure" id="toc-exposure" class="nav-link" data-scroll-target="#exposure"><span class="header-section-number">2.2.4</span> Exposure</a></li>
+  </ul></li>
+  <li><a href="#other-regression-models" id="toc-other-regression-models" class="nav-link" data-scroll-target="#other-regression-models"><span class="header-section-number">2.3</span> Other regression models</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Generalized Linear Models</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>If the outcome variable is not continuous, while OLS will usually be able to be fit, the results may be unexpected or undesired. For example, if the response is a binary indicator, an OLS model fit may predict an individual has a negative response.</p>
+<p>We can generalize the <a href="./01-regression.html#theory">model</a> from ordinary least squares to allow a non-linear relationship between the predictors and the outcome, which may fit different outcomes better.</p>
+<p>Recall that the equation for OLS is</p>
+<p><span class="math display">\[
+  Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \cdots + \beta_pX_p + \epsilon
+\]</span></p>
+<p>We can modify this by allowing the left hand side to be a function of <span class="math inline">\(Y\)</span>,</p>
+<p><span class="math display">\[
+  f(Y) = \beta_0 + \beta_1X_1 + \beta_2X_2 + \cdots + \beta_pX_p + \epsilon
+\]</span></p>
+<p>Note that this is still linear in <span class="math inline">\(X\)</span> (the right-hand side). Non-linear regession refers to something such as</p>
+<p><span class="math display">\[
+  Y = \beta_1X_1^{\beta_2X_2} + \epsilon
+\]</span></p>
+<p>Therefore, even though the function <span class="math inline">\(f()\)</span> may not be linear, the model is still linear - hence “generalized linear model”.</p>
+<p>The function, <span class="math inline">\(f()\)</span>, is called the “link” function. If the link function is the identify function, <span class="math inline">\(f(x) = x\)</span>, the GLM simplifies to ordinary least squares.</p>
+<p>We’ll talk about a few link functions and the regression models they define.</p>
+<section id="logistic-regression" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="logistic-regression"><span class="header-section-number">2.1</span> Logistic Regression</h2>
+<p>Logistic regression is used when the outcome is dichotomous - either a positive outcome (1) or a negative outcome (0). For example, presence or absence of some disease. The link function for logistic regression is logit,</p>
+<p><span class="math display">\[
+    \textrm{logit}(x) = \textrm{log}\Big(\frac{x}{1-x}\Big)
+\]</span></p>
+<p><span class="math display">\[
+    \textrm{logit}\left(P(Y = 1 | X)\right) = \beta_0 + \beta_1X_1 + \cdots + \beta_pX_p + \epsilon.
+\]</span></p>
+<p>Note also that unlike in OLS, the left-hand side is not the observed outcome, but rather the probability of a positive outcome. So the goal of a logistic model is not to predict whether an individual will have a positive outcome, but rather to predict their probability of a positive outcome. This is a subtle difference, but worth pointing out since predicted values will be probabilities, not a binary response.</p>
+<section id="fitting-the-logistic-model" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="fitting-the-logistic-model"><span class="header-section-number">2.1.1</span> Fitting the logistic model</h3>
+<p>We can fit a logistic regression using the <code>logit</code> command in State. It works very similarly to <code>regress</code>. Let’s run a model predicting the presence of a cellar based on square footage, region and electricity expenditure.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">tab</span> cellar</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>     CELLAR |      Freq.     Percent        Cum.</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>------------+-----------------------------------</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>         -2 |      1,455       25.59       25.59</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>          0 |      2,490       43.79       69.38</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>          1 |      1,741       30.62      100.00</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>------------+-----------------------------------</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>      Total |      5,686      100.00</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>. <span class="kw">replace</span> cellar = . <span class="kw">if</span> cellar == -2</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>(1,455 <span class="fu">real</span> changes made, 1,455 to <span class="fu">missing</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>. <span class="kw">logit</span> cellar dollarel totsqft_en i.regionc female</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>Iteration 0:  Log likelihood = -2866.0585  </span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>Iteration 1:  Log likelihood =      -1748  </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>Iteration 2:  Log likelihood = -1730.0798  </span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>Iteration 3:  Log likelihood = -1729.9962  </span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>Iteration 4:  Log likelihood = -1729.9962  </span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>Logistic regression                                    Number <span class="kw">of</span> <span class="kw">obs</span> =   4,231</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>                                                       LR <span class="fu">chi2</span>(6)    = 2272.12</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>                                                       Prob &gt; <span class="fu">chi2</span>   =  0.0000</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>Log likelihood = -1729.9962                            Pseudo R2     =  0.3964</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>      cellar | Coefficient  Std. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    dollarel |  -.0004174   .0000575    -7.26   0.000    -.0005301   -.0003048</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  totsqft_en |   .0009164   .0000417    21.98   0.000     .0008347    .0009981</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>     regionc |</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    Midwest  |  -.3488001   .1461488    -2.39   0.017    -.6352464   -.0623538</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>      South  |  -3.188248   .1435758   -22.21   0.000    -3.469651   -2.906844</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>       West  |   -3.11719   .1482945   -21.02   0.000    -3.407842   -2.826538</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>      female |  -.1458111   .0864176    -1.69   0.092    -.3151864    .0235642</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>       <span class="dt">_cons</span> |   .0504945   .1659137     0.30   0.761    -.2746904    .3756795</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>When you try this yourself, you may notice that its not quite as fast as <code>regress</code>. That is because for OLS we have a “closed form solution” - we just do some quick math and reach an answer. However, almost every other type of regression lacks a closed form solution, so instead we solve it iteratively - Stata guesses at the best coefficients that minimize error<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, and uses an algorithm to repeatedly improve those coefficients until the reduction in error is below some threshold.</p>
+<p>From this output, we get the <code>Number of obs</code> again. Instead of an ANOVA table with a F-statistic to test model significance, there is instead a <code>chi2</code> (<span class="math inline">\(\chi^2\)</span>, pronounced “ky-squared” as in “Kyle”). In this model, we reject the null that all coefficients are identically 0.</p>
+<p>When we move away from linear regression, we no longer get an <span class="math inline">\(R^2\)</span> measure. There have been various pseudo-<span class="math inline">\(R^2\)</span>’s suggested, and Stata reports one here, but be careful assigning too much meaning to it. It is not uncommon to get pseudo-<span class="math inline">\(R^2\)</span> values that are negative or above 1. We’ll discuss measuring <a href="./02-glm.html#logistic-goodness-of-fit">goodness of fit</a> below.</p>
+<p>The coefficients table is interpreted in almost the same way as with regression. We see that square footage and energy expenditure have significant coefficient (positive and negative respectively), and there appears to be no gender effect. There are differences between regions.</p>
+<p>However, we <em>cannot</em> nicely interpret these coefficients, which are known as the “log odds”. All we can say is that “As square footage increases, the probability of a house having a cellar increases.”</p>
+<p>To add any interpretability to these coefficients, we should instead look at the odds ratios. These are the exponentiated log odds. We can ask Stata to produce these with the <code>or</code> option.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">logit</span>, <span class="kw">or</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>Logistic regression                                    Number <span class="kw">of</span> <span class="kw">obs</span> =   4,231</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                                                       LR <span class="fu">chi2</span>(6)    = 2272.12</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                                                       Prob &gt; <span class="fu">chi2</span>   =  0.0000</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>Log likelihood = -1729.9962                            Pseudo R2     =  0.3964</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      cellar | Odds <span class="kw">ratio</span>   Std. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    dollarel |   .9995826   .0000575    -7.26   0.000       .99947    .9996953</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  totsqft_en |   1.000917   .0000417    21.98   0.000     1.000835    1.000999</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>     regionc |</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    Midwest  |   .7055342   .1031129    -2.39   0.017     .5298049    .9395505</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      South  |   .0412441   .0059217   -22.21   0.000     .0311279    .0546479</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>       West  |   .0442814   .0065667   -21.02   0.000     .0331126    .0592175</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>      female |    .864321   .0746925    -1.69   0.092     .7296529    1.023844</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>       <span class="dt">_cons</span> |   1.051791   .1745066     0.30   0.761     .7598073     1.45598</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>Note: <span class="dt">_cons</span> <span class="kw">estimates</span> baseline odds.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Notice that the <code>chi2</code>, <code>Pseudo R2</code>, <code>z</code> and <code>P&gt;|z|</code> do not change - we’re fitting the same model! We’re just changing how the coefficients are represented.</p>
+<p>Odds ratios null hypothesis is at 1, not at 0. A value of 1 represents equal odds (or no change in odds). Odds ratios are always positive. So a significant odds ratio will be away from 1, rather than away from 0 as in linear regression or the log odds. The interpretation of odds ratios can be tricky, so let’s be precise here.</p>
+<p>For categorical predictors, the interpretation is fairly straightforward. The coefficient on females is 0.8643. This means that for every 1 female respondent who has a basement in their house, you would expect 0.8643 male respondents to have a basement.</p>
+<p>For continuous predictors, its the odds as the value of the predictor changes. Consider the coefficient on energy expenditure, 0.999583. For every 1 house of expenditure <span class="math inline">\(e\)</span> which has a cellar, you’d expect 0.999583 houses at expenditure <span class="math inline">\(e+1\)</span> to have a cellar.</p>
+<p>Those coefficients are really close to 1 due to scaling: a $1 increase or 1-sqft increase is irrelevant. Due to the non-linear relationship between the predictors and the outcome, we cannot simply multiply the odds ratios. Instead, let’s scale the variables and re-fit the model.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">generate</span> dollarel1000 = dollarel/1000</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>. <span class="kw">generate</span> totsqft1000 = totsqft_en/1000</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>. <span class="kw">logit</span> cellar dollarel1000 totsqft1000 i.regionc female, <span class="kw">or</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>Iteration 0:  Log likelihood = -2866.0585  </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>Iteration 1:  Log likelihood =      -1748  </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>Iteration 2:  Log likelihood = -1730.0798  </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>Iteration 3:  Log likelihood = -1729.9962  </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>Iteration 4:  Log likelihood = -1729.9962  </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>Logistic regression                                    Number <span class="kw">of</span> <span class="kw">obs</span> =   4,231</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                                                       LR <span class="fu">chi2</span>(6)    = 2272.12</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                                                       Prob &gt; <span class="fu">chi2</span>   =  0.0000</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>Log likelihood = -1729.9962                            Pseudo R2     =  0.3964</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      cellar | Odds <span class="kw">ratio</span>   Std. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>dollarel1000 |   .6587254   .0378633    -7.26   0.000     .5885423    .7372778</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a> totsqft1000 |   2.500286   .1042513    21.98   0.000     2.304083    2.713196</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>     regionc |</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    Midwest  |   .7055342   .1031129    -2.39   0.017     .5298049    .9395505</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>      South  |   .0412441   .0059217   -22.21   0.000     .0311279    .0546479</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>       West  |   .0442814   .0065667   -21.02   0.000     .0331126    .0592175</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>      female |    .864321   .0746925    -1.69   0.092     .7296529    1.023844</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>       <span class="dt">_cons</span> |   1.051791   .1745066     0.30   0.761     .7598073     1.45598</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>Note: <span class="dt">_cons</span> <span class="kw">estimates</span> baseline odds.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Note once again that the model fit characteristics haven’t changed; we’ve fit the same model, just with different units. Now the interpretation are more reasonable. As the expenditure increases by $1000, the odds of having a cellar decrease by 34%.</p>
+<p>For every additional 1000-square feet, the odds of having a cellar increases by 150%. In other words, for every two 2000-square foot house that have a cellar, you’d expect five 3000-square foot houses to have cellars.</p>
+</section>
+<section id="categorical-variables-and-interactions" class="level3" data-number="2.1.2">
+<h3 data-number="2.1.2" class="anchored" data-anchor-id="categorical-variables-and-interactions"><span class="header-section-number">2.1.2</span> Categorical Variables and Interactions</h3>
+<p>Both <a href="./01-regression.html#including-categorical predictors">categorical variables</a> and <a href="./01-regression.html#interactions">interactions</a> can be included as they were in linear regression, with the appropriate interpretation of coefficients/odds ratios.</p>
+</section>
+<section id="margins-and-predict" class="level3" data-number="2.1.3">
+<h3 data-number="2.1.3" class="anchored" data-anchor-id="margins-and-predict"><span class="header-section-number">2.1.3</span> <code>margins</code> and <code>predict</code></h3>
+<p>The <code>margins</code> command works mostly the same, though it produces results on the probability scale, not the odds scale.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>. margins regionc</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>Predictive margins                                       Number <span class="kw">of</span> <span class="kw">obs</span> = 4,231</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>Model <span class="kw">VCE</span>: OIM</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>Expression: Pr(cellar), <span class="kw">predict</span>()</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>             |            Delta-method</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>             |     Margin   <span class="fu">std</span>. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>     regionc |</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  Northeast  |   .7852513   .0181353    43.30   0.000     .7497068    .8207958</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    Midwest  |   .7288181   .0144762    50.35   0.000     .7004453    .7571909</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>      South  |   .2087012   .0102263    20.41   0.000     .1886581    .2287443</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>       West  |    .218189   .0113706    19.19   0.000      .195903     .240475</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The <code>predict</code> command adds a new <a href="./01-regression.html#obtaining-predicted-values-and-residuals">statistic</a>. <code>xb</code> now is the linear predictor, which is often not useful. Instead, the <code>pr</code> statistic returns the estimated probability of a positive outcome.</p>
+</section>
+<section id="logistic-regression-assumptions" class="level3" data-number="2.1.4">
+<h3 data-number="2.1.4" class="anchored" data-anchor-id="logistic-regression-assumptions"><span class="header-section-number">2.1.4</span> Logistic regression assumptions</h3>
+<p>The assumptions for logistic regression are simpler than linear. The outcome measure must be binary with a 0 for a negative response and 1 for a positive. (Technically they don’t have to be positive/negative. We could think of predicting male/female and code male = 0 and female = 1. However, the convention would be to consider the outcome as “The person is female” so a 1 represents a “success” and a 0 a “failure” of that statement.) The errors in a logistic regression model are fairly contained (you can’t be wrong than more than 1!) so there are no real assumptions about them. The <a href="./01-regression.html#independence">independence</a> assumption is still here and still important, again, a mixed logistic model may be appropriate if the data is not independent.</p>
+</section>
+<section id="logistic-goodness-of-fit" class="level3" data-number="2.1.5">
+<h3 data-number="2.1.5" class="anchored" data-anchor-id="logistic-goodness-of-fit"><span class="header-section-number">2.1.5</span> Logistic goodness of fit</h3>
+<p>As we mentioned earlier, there are various issues with the Pseudo <span class="math inline">\(R^2\)</span> reported by <code>logit</code>, so use it carefully. In fact, all measures of goodness of fit in non-OLS models are problematic. However, here are two approaches commonly used in logistic regression.</p>
+<p>The first is to look at a classification results: If we were to choose a threshold (say .2) and classify positive/negative outcomes against it (If a predicted probability is below .2, classify as 0. If a predicted probability is above .2, classify as 1.). We don’t know what the “correct” threshold is (if you even believe there could be one), but we can test over a range of thresholds and see how well we classify.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">lroc</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>Logistic <span class="kw">model</span> <span class="kw">for</span> cellar</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>Number <span class="kw">of</span> observations =     4231</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>Area under ROC curve   =   0.8928</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><img src="graphs/glm1.png" class="img-fluid"></p>
+<p>This is called a ROC curve (Receiver Operating Characteristic). Starting with a threshold of 1 (so no houses are predicted to have a cellar) at (0,0) and continuing to a threshold of 0 (all houses are predicted to have a cellar), each point is plotted as sensitivity (percent of correctly predicted positive responses) versus specificity (incorrecly predicted negative responses). With a threshold of 1, every house with a cellar is predicted to not a cellar (so 0% correct) and every house without a cellar is predicted to have a cellar (0% correct). As the threshold increases, these values are computed and plotted. The diagonal <span class="math inline">\(y=x\)</span> line represents a completely uninformative model, and the ROC curve cannot pass below it. The closer it is to the top left corner, the better predictive the model is. The AUC (area under curve) is another measure of model-fit: .5 would indicate no information (ROC on the diagonal), 1 would indicate perfect fit (ROC to the top left corner). The AUC here is 0.89 indicating some predictive power.</p>
+<p>The second is a more formal test. There are two variants, a Pearson <span class="math inline">\(\chi^2\)</span> test and the Hosmer-Lemeshow test. Both are fit with the <code>estat gof</code> command. Both are testing the hypothesis that the observed positive responses match predicted positive responses in subgroups of the population. Therefore we do <em>not</em> want to reject these tests, and a large p-value is desired.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">estat</span> gof</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>Goodness-<span class="kw">of</span>-<span class="kw">fit</span> <span class="kw">test</span> after <span class="kw">logistic</span> <span class="kw">model</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>Variable: cellar</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      Number <span class="kw">of</span> observations =   4,231</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>Number <span class="kw">of</span> covariate <span class="kw">patterns</span> =   4,231</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>          Pearson <span class="fu">chi2</span>(4224) = 4070.48</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                 Prob &gt; <span class="fu">chi2</span> =  0.9539</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We see here a p-value of 0.954, failing to reject the null, so there is no evidence that the model fits poorly.</p>
+<p>There is some concern that when the “number of covariate patterns” is close to the number of observations , the Pearson test is invalid. In this data, we see that 4231 is indeed equal to 4231. Instead, we can use the Hosmer-Lemeshow by passing the <code>group(#)</code> option:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">estat</span> gof, <span class="fu">group</span>(10)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">note</span>: <span class="kw">obs</span> collapsed <span class="kw">on</span> 10 quantiles <span class="kw">of</span> estimated probabilities.</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>Goodness-<span class="kw">of</span>-<span class="kw">fit</span> <span class="kw">test</span> after <span class="kw">logistic</span> <span class="kw">model</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>Variable: cellar</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a> Number <span class="kw">of</span> observations =  4,231</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>       Number <span class="kw">of</span> groups =     10</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>Hosmer–Lemeshow <span class="fu">chi2</span>(8) =  58.12</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>            Prob &gt; <span class="fu">chi2</span> = 0.0000</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The p-value gets very significant.</p>
+<p>Why did we choose 10 groups? It’s just the standard. The only thing to keep in mind is that the Hosmer-Lemeshow test is only appropriate if the number of groups is greater than the number of predictors (including the intercept). In this model, we had two predictors, so that’s 3 total (including the intercept), so 10 is OK. There is some discussion that this choice can bias results - there are examples out there where passing 9 to the option rejects the test, whereas passing 11 passes.</p>
+<p>Overall, as mentioned, take these goodness-of-fit measures with a grain of salt. Focus on interpreting the coefficients.</p>
+</section>
+<section id="separation" class="level3" data-number="2.1.6">
+<h3 data-number="2.1.6" class="anchored" data-anchor-id="separation"><span class="header-section-number">2.1.6</span> Separation</h3>
+<p>Since the logistic regression model is solved <a href="./01-regression.html#fitting-the-logistic-model">iteratively</a>, this can fail for a number of reasons. Before you begin interpreting the model, you’ll want to glance at the iteration steps and make sure that no errors were printed. The most common failure is due to separation.</p>
+<p>With a binary outcome instead of a continuous outcome, it is much easier to have a predictor (or set of predictors) that perfectly predict the outcome. Consider trying to predict gender based on height. With a smaller sample, it’s not hard to imagine a scenario where every male is taller than every female. This is called “perfect separation”; using this sample, knowing height gives perfect information about gender</p>
+<p>“Partial separation” can also occur; this is when prediction is perfect only for one limit. Take the height scenario again; say everyone above 5’8” is male, and there are two men but the rest women below 5’8”. Here, we will always predict Male for heights above 5’8”.</p>
+<p>Separation (of either type) often produces coefficients to be extreme with large standard errors. Stata will sometimes warn about this, but not always. If you notice these exceptional coefficients or if Stata does warn about separation, you’ll need to investigate and consider excluding certain predictors. It may seem counter-intuitive to exclude extremely highly predictive variables, but if a variable produces perfect separation, you don’t need a model to inform you of that.</p>
+</section>
+<section id="logit-miscellaneous." class="level3" data-number="2.1.7">
+<h3 data-number="2.1.7" class="anchored" data-anchor-id="logit-miscellaneous."><span class="header-section-number">2.1.7</span> <code>logit</code> Miscellaneous.</h3>
+<p>The <code>logit</code> model supports the margins command just like <code>regress</code> does.</p>
+<p>It does not support <code>estat vif</code>, but you can re-run the model as with <code>regress</code> as the VIF does not depend on the outcome. E.g.,</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">logit</span> <span class="fu">y</span> a b c</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">regress</span> <span class="fu">y</span> a b c</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">estat</span> <span class="kw">vif</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Collinearity, overfitting, and model selection remain concerns in the logistic model.</p>
+<p>Robust standard errors via <code>vce(robust)</code> are supported.</p>
+<p>One other common cause of failed convergence is scaling - try scaling all your variables and see if that improves convergence.</p>
+</section>
+<section id="logit-vs-logistic" class="level3" data-number="2.1.8">
+<h3 data-number="2.1.8" class="anchored" data-anchor-id="logit-vs-logistic"><span class="header-section-number">2.1.8</span> <code>logit</code> vs <code>logistic</code></h3>
+<p>Instead of <code>logit</code>, we could run the <code>logistic</code> command. The only difference is that <code>logistic</code> reports the odds ratio by default whereas <code>logit</code> reports the log odds. My personal preference is <code>logit</code>, but there’s no need to use one over the other.</p>
+</section>
+<section id="sample-size-concerns" class="level3" data-number="2.1.9">
+<h3 data-number="2.1.9" class="anchored" data-anchor-id="sample-size-concerns"><span class="header-section-number">2.1.9</span> Sample size concerns</h3>
+<p>When the percent of positive outcomes is close to 50%, the rules we <a href="./01-regression.html#overfitting">discussed for OLS</a> hold, 10-20 observations per predictor. As the percent of positive outcomes deviates from 50%, you may need a much larger sample size - mostly to ensure a reasonable number of both positive and negative outcomes. For example, if you expect 5% of individuals to have a positive outcome, and have a sample size of 40, that’s only 2 individuals with a positive outcome! Instead you should strive to have at least 10 or ideally over 100 individuals per outcome.</p>
+</section>
+<section id="rare-outcomes" class="level3" data-number="2.1.10">
+<h3 data-number="2.1.10" class="anchored" data-anchor-id="rare-outcomes"><span class="header-section-number">2.1.10</span> Rare outcomes</h3>
+<p>If the percent of positive outcomes is extreme (e.g.&nbsp;99% or 1%), logistic regression may fail to converge. Sometimes <a href="./02-glm.html#poisson-regresion">Poisson regression</a> which we’ll talk about next can be used in this situation. The estimated coefficients will be slightly biased, but convergence may easier to achieve.</p>
+</section>
+</section>
+<section id="poisson-regression" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="poisson-regression"><span class="header-section-number">2.2</span> Poisson regression</h2>
+<p>When the response variable is a count (number of occurences), then using a log link function produces what’s known as Poisson regression.</p>
+<section id="fitting-the-model" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="fitting-the-model"><span class="header-section-number">2.2.1</span> Fitting the model</h3>
+<p>As with logistic regression, the Poisson regression command is simple and similar to <code>regress</code>. Let’s predict the number of rooms in a house based upon the variables we’ve been dealing with so far.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">histogram</span> totrooms</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>(<span class="bn">bin</span>=37, <span class="bn">start</span>=1, <span class="kw">width</span>=.48648649)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><img src="graphs/glm2.png" class="img-fluid"></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">poisson</span> totrooms dollarel1000 totsqft1000 i.cellar i.regionc female</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>Iteration 0:  Log likelihood = -8755.2204  </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>Iteration 1:  Log likelihood = -8755.2185  </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>Iteration 2:  Log likelihood = -8755.2185  </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>Poisson regression                                      Number <span class="kw">of</span> <span class="kw">obs</span> =  4,231</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>                                                        LR <span class="fu">chi2</span>(7)    = 986.09</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>                                                        Prob &gt; <span class="fu">chi2</span>   = 0.0000</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>Log likelihood = -8755.2185                             Pseudo R2     = 0.0533</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    totrooms | Coefficient  Std. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>dollarel1000 |   .0576783    .007261     7.94   0.000      .043447    .0719096</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a> totsqft1000 |   .1124977   .0049483    22.73   0.000     .1027992    .1221962</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    1.cellar |   .0609588   .0159101     3.83   0.000     .0297756    .0921421</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>     regionc |</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    Midwest  |   .0242295    .019944     1.21   0.224      -.01486    .0633189</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>      South  |   .0369115   .0211105     1.75   0.080    -.0044642    .0782873</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>       West  |   .0705931   .0218298     3.23   0.001     .0278075    .1133788</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>      female |  -.0206701   .0117413    -1.76   0.078    -.0436825    .0023424</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>       <span class="dt">_cons</span> |    1.50274   .0244648    61.42   0.000      1.45479     1.55069</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We see the same sort of header information, including a Chi2 test for model significance and another pseudo <span class="math inline">\(R^2\)</span>.</p>
+<p>The coefficients are again not interpretable other than sign and magnitude, but we can report incidence-rate ratios (IRR) instead. The <code>irr</code> option produces these, which are just the exponetiated coefficients.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">poisson</span>, <span class="kw">irr</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>Poisson regression                                      Number <span class="kw">of</span> <span class="kw">obs</span> =  4,231</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                                                        LR <span class="fu">chi2</span>(7)    = 986.09</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                                                        Prob &gt; <span class="fu">chi2</span>   = 0.0000</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>Log likelihood = -8755.2185                             Pseudo R2     = 0.0533</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    totrooms |        IRR   Std. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>dollarel1000 |   1.059374   .0076921     7.94   0.000     1.044405    1.074558</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a> totsqft1000 |    1.11907   .0055375    22.73   0.000     1.108269    1.129976</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    1.cellar |   1.062855   .0169102     3.83   0.000     1.030223    1.096521</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>     regionc |</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    Midwest  |   1.024525   .0204331     1.21   0.224     .9852499    1.065367</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>      South  |   1.037601   .0219042     1.75   0.080     .9955457    1.081433</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>       West  |   1.073145   .0234265     3.23   0.001     1.028198    1.120056</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>      female |   .9795421   .0115011    -1.76   0.078     .9572578    1.002345</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>       <span class="dt">_cons</span> |   4.493985   .1099446    61.42   0.000     4.283582    4.714722</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>Note: <span class="dt">_cons</span> <span class="kw">estimates</span> baseline incidence rate.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>IRR’s are slightly easier to interpret than OR’s. Each represents a average percent change in the count of the outcome predicted when there is a 1 increase in the predictor variable.</p>
+<p>For example, the IRR for square footage is 1.119 which translates to a 11.9% predicted average increase in the number of rooms in a house which increases in sample size by 1,000 square feet.</p>
+</section>
+<section id="interactions-categorical-variables-margins-predict" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="interactions-categorical-variables-margins-predict"><span class="header-section-number">2.2.2</span> Interactions, categorical variables, <code>margins</code>, <code>predict</code></h3>
+<p>Interactions and categorical variables work the same. <code>margins</code> estimates the marginal means, which are the expected number of counts. <code>predict</code> by default predicts the number of events.</p>
+</section>
+<section id="assumptions" class="level3" data-number="2.2.3">
+<h3 data-number="2.2.3" class="anchored" data-anchor-id="assumptions"><span class="header-section-number">2.2.3</span> Assumptions</h3>
+<p>Poisson regression has the same independence assumption. It also has a very strong assumption which is specific to the Poisson distribution - namely that the mean and variance of a Poisson random variable are equal. In other words, as the mean of a Poisson variable increases, it becomes more spread out in a linear fashion.</p>
+<p>We can examine whether this may be true for a given variable.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">summarize</span> totrooms</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    Variable |        Obs        Mean    Std. <span class="kw">dev</span>.       Min        Max</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>-------------+---------------------------------------------------------</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    totrooms |      5,686    6.191347    2.360918          1         19</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Here the mean, 6.19 is very close to the variance, 2.36<span class="math inline">\(^2\)</span> = 5.57. This is not always the case for count data. If this is not true, a Negative Binomial model may be more appropriate. It’s extremely similar to Poisson, except it allows the mean and variance to be decoupled by means of <span class="math inline">\(\alpha\)</span>, called the overdispersion factor.</p>
+<p>We can fit it with the <code>nbreg</code> command.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">nbreg</span> totrooms dollarel1000 totsqft1000 i.cellar i.regionc female</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>Fitting Poisson <span class="kw">model</span>:</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>Iteration 0:  Log likelihood = -8755.2204  </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>Iteration 1:  Log likelihood = -8755.2185  </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>Iteration 2:  Log likelihood = -8755.2185  </span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>Fitting constant-only <span class="kw">model</span>:</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>Iteration 0:  Log likelihood = -12716.439  </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>Iteration 1:  Log likelihood = -9248.2645  </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>Iteration 2:  Log likelihood = -9248.2645  </span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>Fitting full <span class="kw">model</span>:</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>Iteration 0:  Log likelihood = -8758.8756  </span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>Iteration 1:  Log likelihood = -8755.2187  </span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>Iteration 2:  Log likelihood = -8755.2185  </span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>Negative binomial regression                            Number <span class="kw">of</span> <span class="kw">obs</span> =  4,231</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>                                                        LR <span class="fu">chi2</span>(7)    = 986.09</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>Dispersion: <span class="kw">mean</span>                                        Prob &gt; <span class="fu">chi2</span>   = 0.0000</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>Log likelihood = -8755.2185                             Pseudo R2     = 0.0533</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    totrooms | Coefficient  Std. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>dollarel1000 |   .0576783    .007261     7.94   0.000      .043447    .0719096</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a> totsqft1000 |   .1124977   .0049483    22.73   0.000     .1027992    .1221962</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    1.cellar |   .0609588   .0159101     3.83   0.000     .0297756    .0921421</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>     regionc |</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>    Midwest  |   .0242295    .019944     1.21   0.224      -.01486    .0633189</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>      South  |   .0369115   .0211105     1.75   0.080    -.0044642    .0782873</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>       West  |   .0705931   .0218298     3.23   0.001     .0278075    .1133788</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>      female |  -.0206701   .0117413    -1.76   0.078    -.0436825    .0023424</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>       <span class="dt">_cons</span> |    1.50274   .0244648    61.42   0.000      1.45479     1.55069</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>    /lnalpha |  -27.77865          .                             .           .</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>       <span class="kw">alpha</span> |   8.63e-13          .                             .           .</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>LR <span class="kw">test</span> <span class="kw">of</span> <span class="kw">alpha</span>=0: chibar2(01) = 0.00                 Prob &gt;= chibar2 = 1.000</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The row for <code>alpha</code> is the estimate of the overdispersion factor. If this value is close to 0, the Poisson model is appropriate. That’s what is occcurring here - in fact it’s so close to 0 that Stata refuses to even compute a standard error for it. The likelihood ratio test below it is formally testing whether the Poisson model is appropriate; here the p-value of 1.0 let’s us stick with Poisson. If this rejected, the negative binomial model is more appropriate. The negative binomial model is interpreted in the same fashion as Poisson.</p>
+</section>
+<section id="exposure" class="level3" data-number="2.2.4">
+<h3 data-number="2.2.4" class="anchored" data-anchor-id="exposure"><span class="header-section-number">2.2.4</span> Exposure</h3>
+<p>Sometimes the count is limited by the exposure - for example, if you are counting the number of students in a class who fail an exam, this number will likely be higher for classes with more students. We can adjust for this in the Poisson model by specifying the <code>exposure(___)</code> option.</p>
+<p>In the energy data, let’s say instead of the total number of rooms, we want to predict the number of bedrooms. Obviously the total number of rooms in the house will greatly affect the number of bedrooms.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">histogram</span> bedrooms</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>(<span class="bn">bin</span>=37, <span class="bn">start</span>=0, <span class="kw">width</span>=.27027027)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><img src="graphs/glm3.png" class="img-fluid"></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>. <span class="kw">poisson</span> bedrooms dollarel1000 totsqft1000 i.cellar i.regionc female, exposure</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>&gt; (totrooms) <span class="kw">irr</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>Iteration 0:  Log likelihood = -6697.7375  </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>Iteration 1:  Log likelihood = -6697.7375  </span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>Poisson regression                                      Number <span class="kw">of</span> <span class="kw">obs</span> =  4,231</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>                                                        LR <span class="fu">chi2</span>(7)    =  29.36</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>                                                        Prob &gt; <span class="fu">chi2</span>   = 0.0001</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>Log likelihood = -6697.7375                             Pseudo R2     = 0.0022</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    bedrooms |        IRR   Std. err.      z    P&gt;|z|     [95% conf. interval]</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>-------------+----------------------------------------------------------------</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>dollarel1000 |    1.00444   .0110315     0.40   0.687       .98305    1.026296</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a> totsqft1000 |   .9736346   .0074929    -3.47   0.001      .959059    .9884317</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    1.cellar |   .9749456   .0229176    -1.08   0.280      .931047    1.020914</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>     regionc |</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    Midwest  |   .9819498   .0292231    -0.61   0.540      .926312    1.040929</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>      South  |   .9932802   .0310743    -0.22   0.829     .9342054    1.056091</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>       West  |   1.023995   .0329379     0.74   0.461     .9614307     1.09063</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>             |</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>      female |   1.000022    .017315     0.00   0.999     .9666552    1.034542</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>       <span class="dt">_cons</span> |   .4965649   .0181979   -19.10   0.000     .4621485    .5335443</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="fu">ln</span>(totrooms) |          1  (exposure)</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------------</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>Note: <span class="dt">_cons</span> <span class="kw">estimates</span> baseline incidence rate.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We interpret this exactly as before. Negative binomial models can likewise have <code>exposure(___)</code> set.</p>
+</section>
+</section>
+<section id="other-regression-models" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="other-regression-models"><span class="header-section-number">2.3</span> Other regression models</h2>
+<p>There are two extensions to logistic regression, ordinal logistic and multinomial logistic.</p>
+<p>Ordinal logistic is used when there are more than 2 outcome categories, and they are ordered (e.g.&nbsp;not sick (0), mildly sick (1), very sick (2)). Using <code>ologit</code>, Stata estimates an underlying continuous distribution and returns the “cut points”, allowing categorization.</p>
+<p>If there are multiple groups but not ordered, e.g.&nbsp;race, use <code>mlogit</code> for multinomial logistic regression. It essentially fits a model predicting membership in each group versus all other, with some restrictions across the models.</p>
+
+
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p>Technically that maximizes likelihood, but that distinction is not important for understanding.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  let localAlternateSentinel = 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./01-regression.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Ordinary Least Squares</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>

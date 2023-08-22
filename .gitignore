@@ -9,3 +9,4 @@ rsconnect
 *.log
 .DS_Store
 stata_markdown/*.svg
+/.quarto/
